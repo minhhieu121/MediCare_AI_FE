@@ -1,99 +1,51 @@
-import { View, Text } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { StyleSheet, Button } from "react-native";
-import { router } from "expo-router";
-import React from "react";
+import React from 'react';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { useRouter } from 'expo-router';
+// @ts-ignore
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Authenticate = () => {
+  const router = useRouter();
+
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.authContainer}>
-        <Text className="text-4xl text-white font-psemibold">
-          Welcome to YourApp!
-        </Text>
-        <ThemedText style={styles.subtitle}>
-          Please log in or register to continue.
-        </ThemedText>
-        <View style={styles.buttonContainer}>
-          <Button title="Login" onPress={() => router.push("/LoginScreen")} />
-          <Button
-            title="Register"
-            onPress={() => router.push("/RegisterScreen")}
-          />
+    <View className="flex-1">
+      <View className="flex-1 justify-center items-center px-6">
+        <Image
+          source={require('../assets/images/trans_logo.png')}
+          className="w-180 h-180 mb-8"
+          resizeMode="contain"
+        />
+
+        <View className="bg-white bg-opacity-80 shadow-lg rounded-xl p-8 w-full max-w-md">
+          <Text className="text-4xl text-gray-800 font-psemibold text-center">
+            Welcome to
+          </Text>
+          <Text className="text-4xl text-gray-800 font-psemibold mb-4 text-center">
+            Medicare AI!
+          </Text>
+          <Text className="text-base text-gray-600 mb-6 text-center">
+            Please log in or register to continue.
+          </Text>
+          <View className="flex-row justify-between">
+            <TouchableOpacity
+              className="bg-blue-500 px-6 py-3 rounded-lg flex-1 mr-2 flex-row justify-center items-center"
+              onPress={() => router.push('/LoginScreen')}
+            >
+              <Icon name="log-in-outline" size={20} color="#fff" className="mr-2" />
+              <Text className="text-white text-center font-medium">Login</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-green-500 px-6 py-3 rounded-lg flex-1 ml-2 flex-row justify-center items-center"
+              onPress={() => router.push('/RegisterScreen')}
+            >
+              <Icon name="person-add-outline" size={20} color="#fff" className="mr-2" />
+              <Text className="text-white text-center font-medium">Register</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </ThemedView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  authContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 32,
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  buttonContainer: {
-    width: "80%",
-    justifyContent: "space-between",
-    height: 100,
-  },
-  header: {
-    position: "absolute",
-    top: 40,
-    left: 10,
-    right: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.8)",
-    padding: 10,
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    elevation: 5,
-  },
-  welcomeText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  searchContainer: {
-    position: "absolute",
-    top: 100,
-    left: 10,
-    right: 10,
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    elevation: 5,
-  },
-  input: {
-    flex: 1,
-    padding: 8,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 4,
-    marginRight: 10,
-  },
-});
 
 export default Authenticate;
