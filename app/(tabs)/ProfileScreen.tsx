@@ -54,15 +54,6 @@ const ProfileScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <LinearGradient
-        colors={['#e0f7fa', '#000000']}
-        className="absolute top-0 left-0 right-0 bottom-0"
-      />
-      {/* Gradient Background */}
-
-      {/* Blur Overlay */}
-      <BlurView intensity={50} className="absolute top-0 left-0 right-0 bottom-0" />
-
       {/* FlatList chính */}
       <FlatList
         data={appointments}
