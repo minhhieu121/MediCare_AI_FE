@@ -1,7 +1,12 @@
 import React from "react";
-import {View, Text, Image, TouchableOpacity, ScrollView, FlatList} from "react-native";
-import {useRouter} from 'expo-router'; // Hoặc router bạn đang sử dụng
-import Icon from 'react-native-vector-icons/Ionicons'; // Nếu bạn sử dụng icon
+import { View, Text, Image, TouchableOpacity, FlatList } from "react-native";
+import { useRouter } from 'expo-router';
+import Icon from 'react-native-vector-icons/Ionicons';
+import Svg, {Circle, Line} from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import ListHeaderProfile from "@/components/ListHeaderProfile";
 
 export type Appointment = {
   id: string;
@@ -12,7 +17,7 @@ export type Appointment = {
   status: string;
 }
 
-const appointments = [
+const appointments: Appointment[] = [
   {
     id: '1',
     doctor: 'Dr. John Doe',
@@ -32,90 +37,43 @@ const appointments = [
   // Thêm các cuộc hẹn khác nếu cần
 ];
 
+const renderAppointment = ({ item }: { item: Appointment }) => (
+  <Animated.View entering={FadeIn.duration(800)} className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
+    <Text className="text-blue-700 font-psemibold">Bác sĩ: {item.doctor}</Text>
+    <Text className="text-blue-700 font-psemibold">Chuyên Khoa: {item.specialty}</Text>
+    <Text className="text-blue-700 font-psemibold">Ngày: {item.date}</Text>
+    <Text className="text-blue-700 font-psemibold">Giờ: {item.time}</Text>
+    <Text className={`text-sm font-pmedium ${item.status === 'Confirmed' ? 'text-green-500' : 'text-yellow-500'}`}>
+      {item.status}
+    </Text>
+  </Animated.View>
+);
+
 const ProfileScreen = () => {
   const router = useRouter();
 
-  const renderAppointment = ({item}: { item: Appointment }) => (
-      <View className="bg-white shadow-sm rounded-lg p-4 mb-4">
-        <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-lg font-psemibold text-gray-800">{item.doctor}</Text>
-          <Text className={`text-sm font-pmedium ${item.status === 'Confirmed' ? 'text-green-500' : 'text-yellow-500'}`}>
-            {item.status}
-          </Text>
-        </View>
-        <Text className="text-gray-600 font-pregular">Specialty: {item.specialty}</Text>
-        <Text className="text-gray-600 font-pregular">Date: {item.date}</Text>
-        <Text className="text-gray-600 font-pregular">Time: {item.time}</Text>
-      </View>
-  );
-
   return (
-      <ScrollView className="flex-1 bg-sky-100 p-4">
-        {/* Header */}
-        <View className="flex-row items-center mb-6 mt-10">
-          <Image
-              source={{uri: "https://via.placeholder.com/150"}}
-              className="w-24 h-24 rounded-full mr-4 border-2 border-stone-200"
-          />
-          <View className="flex-1">
-            <Text className="text-2xl font-psemibold text-gray-800">Nguyễn Văn A</Text>
-            <Text className="text-gray-600 font-pregular">nguyenvana@example.com</Text>
-          </View>
-          <TouchableOpacity
-              className="p-2"
-              onPress={() => {
+    <View className="flex-1 bg-white">
+      <LinearGradient
+        colors={['#e0f7fa', '#000000']}
+        className="absolute top-0 left-0 right-0 bottom-0"
+      />
+      {/* Gradient Background */}
 
-              }}
-          >
-            <Icon name="create-outline" size={24} color="#3b82f6"/>
-          </TouchableOpacity>
-        </View>
+      {/* Blur Overlay */}
+      <BlurView intensity={50} className="absolute top-0 left-0 right-0 bottom-0" />
 
-        {/* Thông Tin Cá Nhân */}
-        <View className="bg-white shadow-md rounded-lg p-6 mb-6">
-          <Text className="text-xl font-psemibold text-gray-800 mb-4">Thông Tin Cá Nhân</Text>
-          <View className="flex-row items-center mb-3">
-            <Icon name="calendar-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Ngày Sinh: 01/01/1990</Text>
-          </View>
-          <View className="flex-row items-center mb-3">
-            <Icon name="male-female-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Giới Tính: Nam</Text>
-          </View>
-          <View className="flex-row items-center mb-3">
-            <Icon name="location-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Địa Chỉ: 123 Đường ABC, Quận 1, TP.HCM</Text>
-          </View>
-          <View className="flex-row items-center mb-3">
-            <Icon name="call-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Điện Thoại: 0123 456 789</Text>
-          </View>
-          <View className="flex-row items-center">
-            <Icon name="mail-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Email: nguyenvana@example.com</Text>
-          </View>
-        </View>
-
-        {/* Thông Tin Cuộc Hẹn */}
-        <View className="bg-white shadow-md rounded-lg p-6 mb-6">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-psemibold text-gray-800">Cuộc Hẹn Của Tôi</Text>
-            <TouchableOpacity onPress={() => {
-
-            }}>
-              <Text className="text-blue-500 font-pmedium">Xem tất cả</Text>
-            </TouchableOpacity>
-          </View>
-          <FlatList
-              data={appointments}
-              renderItem={renderAppointment}
-              keyExtractor={item => item.id}
-              ListEmptyComponent={<Text className="text-gray-600 font-psemibold">Không có cuộc hẹn nào.</Text>}
-          />
-        </View>
-
-        {/* Thêm phần footer hoặc các thông tin bổ sung nếu cần */}
-      </ScrollView>
+      {/* FlatList chính */}
+      <FlatList
+        data={appointments}
+        renderItem={renderAppointment}
+        keyExtractor={item => item.id}
+        ListHeaderComponent={ListHeaderProfile}
+        ListEmptyComponent={<Text className="text-gray-600 font-psemibold text-center mt-4">Không có cuộc hẹn nào.</Text>}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        className="flex-1 bg-transparent p-4"
+      />
+    </View>
   );
 };
 

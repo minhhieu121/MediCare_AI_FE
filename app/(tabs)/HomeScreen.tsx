@@ -6,22 +6,10 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { AuthContext } from "@/context/AuthContext";
-import { useNavigation } from "@react-navigation/native";
-import { useContext } from "react";
-import { Button, View } from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { router } from "expo-router";
+import React, { useContext } from "react";
 import "../../global.css";
-import Authenticate from "@/components/Authenticate";
 
 export default function HomeScreen() {
-  const { isLoggedIn, user, logout } = useContext(AuthContext);
-
-  if (!isLoggedIn) {
-    return <Authenticate />;
-  }
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}

@@ -11,7 +11,7 @@ const Authenticate = () => {
     <View className="flex-1">
       <View className="flex-1 justify-center items-center px-6">
         <Image
-          source={require('../assets/images/trans_logo.png')}
+          source={require('../../assets/images/trans_logo.png')}
           className="w-180 h-180 mb-8"
           resizeMode="contain"
         />

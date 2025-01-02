@@ -31,7 +31,7 @@ const RegisterScreen: React.FC = () => {
 
     setIsSubmitting(true);
     login(user);
-    router.replace("/(tabs)");
+    router.replace("/(tabs)/HomeScreen");
   };
   return (
       <SafeAreaView className="h-full">

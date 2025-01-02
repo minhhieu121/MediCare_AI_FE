@@ -20,6 +20,11 @@ module.exports = {
         gray: {
           100: "#CDCDE0",
         },
+        softBlue: '#E0F7FA',
+        lightBlue: '#B2EBF2',
+        greenAccent: '#10B981',
+        primaryBlue: '#3B82F6',
+        secondaryGreen: '#34D399',
       },
       fontFamily: {
         pthin: ["Poppins-Thin", "sans-serif"],
@@ -31,6 +36,11 @@ module.exports = {
         pbold: ["Poppins-Bold", "sans-serif"],
         pextrabold: ["Poppins-ExtraBold", "sans-serif"],
         pblack: ["Poppins-Black", "sans-serif"],
+      },
+      boxShadow: {
+        'custom-light': '0 4px 6px rgba(0, 0, 0, 0.1)',
+        'custom-medium': '0 6px 10px rgba(0, 0, 0, 0.15)',
+        'custom-heavy': '0 10px 20px rgba(0, 0, 0, 0.25)',
       },
     },
   },

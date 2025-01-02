@@ -7,11 +7,17 @@ import {useContext} from "react";
 const AuthLayout = () => {
   const {isLoggedIn} = useContext(AuthContext);
 
-  if (isLoggedIn) return <Redirect href="../(tabs)/index.tsx"/>;
+  if (isLoggedIn) return <Redirect href="../(tabs)/HomeScreen.tsx"/>;
 
   return (
       <>
         <Stack>
+          <Stack.Screen
+              name="Authenticate"
+              options={{
+                headerShown: false,
+              }}
+          />
           <Stack.Screen
               name="LoginScreen"
               options={{
