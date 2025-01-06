@@ -2,9 +2,17 @@ import {Image, Text, TouchableOpacity, View} from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import React from "react";
 import {useRouter} from "expo-router";
+import {SignUpData} from "@/context/AuthContext";
 
-const ListHeaderProfile = () => {
+const ListHeaderProfile = (userData: SignUpData) => {
   const router = useRouter();
+
+  const dateFormat = (date: string) => {
+    const year = date.slice(0, 4);
+    const month = date.slice(5, 7);
+    const day = date.slice(8, 10);
+    return `${day}/${month}/${year}`;
+  }
   return (
       <View>
         {/* Header */}
@@ -14,8 +22,8 @@ const ListHeaderProfile = () => {
               className="w-24 h-24 rounded-full mr-4 border-2 border-stone-500"
           />
           <View className="flex-1">
-            <Text className="text-2xl font-psemibold text-gray-800">Nguyễn Văn A</Text>
-            <Text className="text-gray-600 font-pregular">nguyenvana@example.com</Text>
+            <Text className="text-2xl font-psemibold text-gray-800">{userData?.fullname || "dfd"}</Text>
+            <Text className="text-gray-600 font-pregular">{userData.email}</Text>
           </View>
           <TouchableOpacity
               className="p-2"
@@ -30,23 +38,23 @@ const ListHeaderProfile = () => {
           <Text className="text-xl font-psemibold text-gray-800 mb-4">Thông Tin Cá Nhân</Text>
           <View className="flex-row items-center mb-3">
             <Icon name="calendar-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Ngày Sinh: 01/01/1990</Text>
+            <Text className="text-gray-700 font-pregular">Ngày Sinh: {dateFormat(userData.date_of_birth)}</Text>
           </View>
           <View className="flex-row items-center mb-3">
             <Icon name="male-female-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Giới Tính: Nam</Text>
+            <Text className="text-gray-700 font-pregular">Giới Tính: {userData.gender === "Male" ? "Nam" : "Nữ"}</Text>
           </View>
           <View className="flex-row items-center mb-3">
             <Icon name="location-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Địa Chỉ: 123 Đường ABC, Quận 1, TP.HCM</Text>
+            <Text className="text-gray-700 font-pregular">Địa Chỉ: {userData.address}</Text>
           </View>
           <View className="flex-row items-center mb-3">
             <Icon name="call-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Điện Thoại: 0123 456 789</Text>
+            <Text className="text-gray-700 font-pregular">Điện Thoại: {userData.phone}</Text>
           </View>
           <View className="flex-row items-center">
             <Icon name="mail-outline" size={20} color="#6B7280" className="mr-3"/>
-            <Text className="text-gray-700 font-pregular">Email: nguyenvana@example.com</Text>
+            <Text className="text-gray-700 font-pregular">Email: {userData.email}</Text>
           </View>
         </View>
 

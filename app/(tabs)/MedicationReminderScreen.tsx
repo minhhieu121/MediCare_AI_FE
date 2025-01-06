@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {Calendar, DateData, LocaleConfig} from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -6,6 +6,8 @@ import {WeekSchedule, DaySchedule, Medication} from '@/types/medication';
 import {medicationSchedule} from '@/data/medicationData';
 import {parse, format} from 'date-fns';
 import {requestNotificationPermissions, scheduleNotification} from "@/notification";
+import {AuthContext} from "@/context/AuthContext";
+import {router} from "expo-router";
 
 LocaleConfig.locales['vi'] = {
   monthNames: [
@@ -23,7 +25,13 @@ const MedicationReminderScreen: React.FC = () => {
   const [daySchedule, setDaySchedule] = useState<DaySchedule | null>(null);
   const [selectedMedications, setSelectedMedications] = useState<{ [key: string]: boolean }>({});
   const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
+  const {token} = useContext(AuthContext);
 
+  useEffect(() => {
+    if (!token) {
+      router.push("/LoginScreen");
+    }
+  }, [token]);
   function getTodayDate(): string {
     const today = new Date();
     return format(today, 'yyyy-MM-dd');

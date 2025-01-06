@@ -12,7 +12,7 @@ import "react-native-reanimated";
 
 import {useColorScheme} from "@/hooks/useColorScheme";
 import "../global.css";
-import {AuthContext} from "@/context/AuthContext";
+import {AuthContext, AuthProvider} from "@/context/AuthContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -44,17 +44,20 @@ export default function RootLayout() {
   }
 
   return (
-      // <AuthContext.Provider value={{isLoggedIn}}>
+      <AuthProvider>
         <ThemeProvider value={DefaultTheme}>
           <Stack>
             <Stack.Screen name="index" options={{headerShown: false}}/>
             <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
             <Stack.Screen name="(auth)" options={{headerShown: false}}/>
             <Stack.Screen name="(chatbot)" options={{headerShown: false}}/>
+            <Stack.Screen name="HospitalDetails/[hospitalId]" options={{headerShown: false}}/>
+            <Stack.Screen name="HospitalDetails/[hospitalId]/DepartmentDetails/[departmentId]" options={{headerShown: false}}/>
+            <Stack.Screen name="HospitalDetails/[hospitalId]/DepartmentDetails/[departmentId]/DoctorDetails/[doctorId]" options={{headerShown: false}}/>
             <Stack.Screen name="+not-found"/>
           </Stack>
           <StatusBar style="auto"/>
         </ThemeProvider>
-      // </AuthContext.Provider>
+      </AuthProvider>
   );
 }
