@@ -29,14 +29,25 @@ interface Coordinate {
   longitude: number;
 }
 
+type LocationWatchSubscription = {
+  remove: () => void;
+};
+
+interface SuggestionItem {
+  mapbox_id: string;
+  name: string;
+  address: string;
+  full_address: string;
+}
+
 export default function MapScreen() {
-  const [routeCoordinates, setRouteCoordinates] = useState([]);
-  const [startLocation, setStartLocation] = useState(null);
+  const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
+  const [startLocation, setStartLocation] = useState<Coordinate | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [sessionToken, setSessionToken] = useState(generateUUID());
-  const [destination, setDestination] = useState(null);
+  const [destination, setDestination] = useState<Coordinate | null>(null);
 
 
   const [searchMidQuery, setSearchMidQuery] = useState("")
@@ -50,7 +61,9 @@ export default function MapScreen() {
 
   const debugCount = useRef(0);
 
-  const mapRef = useRef(null);
+  const mapRef = useRef<MapView | null>(null);
+
+  const locationSubscription = useRef<LocationWatchSubscription | null>(null);
 
   const calculateDistance2D = (point1: Coordinate, point2: Coordinate) => {
     return Math.sqrt(
@@ -77,7 +90,11 @@ export default function MapScreen() {
     return nearestIndex; // Trả về -1 nếu không tìm được điểm nào thỏa mãn
   };
 
-  const interpolateCoordinates = (point1, point2, numPoints) => {
+  const interpolateCoordinates = (
+    point1: Coordinate,
+    point2: Coordinate, 
+    numPoints: number
+  ): Coordinate[] => {
     const points = [];
     for (let i = 1; i <= numPoints; i++) {
       const fraction = i / (numPoints + 1);
@@ -113,7 +130,10 @@ export default function MapScreen() {
         
             // if (accuracy > 10) return; // Bỏ qua nếu sai số lớn
         
-            const currentLocation = { latitude, longitude };
+            const currentLocation: Coordinate = { 
+              latitude: latitude as number, 
+              longitude: longitude as number 
+            };
             setStartLocation(currentLocation);
         
             setRouteCoordinates((prevRouteCoordinates) => {
@@ -186,11 +206,11 @@ export default function MapScreen() {
     })();
   }, []);
 
+  // const locationSubscription = useRef<Location.LocationSubscription | null>(null);
+
   useEffect(() => {
-    let locationSubscription;
-  
     const startTracking = async () => {
-      locationSubscription = await Location.watchPositionAsync(
+      locationSubscription.current = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.High, distanceInterval: 1, timeInterval: 1000 },
         (newLocation) => {
           const { latitude, longitude } = newLocation.coords;
@@ -210,8 +230,8 @@ export default function MapScreen() {
             // Tính toán vị trí "center" dịch xuống theo hướng nhìn
             const offsetDistance = -0.001; // Khoảng cách cần dịch (đơn vị: độ)
             const adjustedCenter = {
-              latitude: startLocation.latitude - offsetDistance * Math.cos((bearing * Math.PI) / 180),
-              longitude: startLocation.longitude - offsetDistance * Math.sin((bearing * Math.PI) / 180),
+              latitude: startLocation?.latitude ?? 0 - offsetDistance * Math.cos((bearing * Math.PI) / 180),
+              longitude: startLocation?.longitude ?? 0 - offsetDistance * Math.cos((bearing * Math.PI) / 180)
             };
           
             // Cập nhật camera
@@ -233,24 +253,20 @@ export default function MapScreen() {
   
     if (isFocusing) {
       startTracking();
-    } else if (locationSubscription) {
-      locationSubscription.remove();
+    } else if (locationSubscription.current) {
+      locationSubscription.current.remove();
     } else {
-      if (mapRef.current) {
-        mapRef.current.animateCamera(
-          {
-            pitch: 0, // Góc nghiêng bản đồ
-          },
-          { duration: 500 } // Thời gian di chuyển camera (ms)
-        );
-      }
+      mapRef.current?.animateCamera(
+        {
+          pitch: 0,
+        },
+        { duration: 500 }
+      );
     }
 
   
     return () => {
-      if (locationSubscription) {
-        locationSubscription.remove();
-      }
+      locationSubscription.current?.remove();
     };
   }, [isFocusing, routeCoordinates]);
 
@@ -296,7 +312,7 @@ export default function MapScreen() {
     }
   };
 
-  const handleSelectSuggestion = async (mapboxId) => {
+  const handleSelectSuggestion = async (mapboxId: string) => {
     try {
       const response = await fetch(
         `https://api.mapbox.com/search/searchbox/v1/retrieve/${mapboxId}?access_token=${MAPBOX_ACCESS_TOKEN}&session_token=${sessionToken}`
@@ -316,10 +332,11 @@ export default function MapScreen() {
     }
   };
 
-  const handleSelectMidSuggestion = async (mapboxId) => {
+  const handleSelectMidSuggestion = async (mapboxId: string) => {
     try {
       const response = await fetch(
         `https://api.mapbox.com/search/searchbox/v1/retrieve/${mapboxId}?access_token=${MAPBOX_ACCESS_TOKEN}&session_token=${sessionToken}`
+
       );
       const data = await response.json();
       const feature = data.features[0];
@@ -348,19 +365,22 @@ export default function MapScreen() {
     try {
       // Tạo chuỗi các điểm trung gian cho API Mapbox
       const midPointsString = midPoints
-        .map((point) => `${point.longitude},${point.latitude}`)
-        .join(";");
-  
-      // Xây dựng URL với các điểm trung gian
-      const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLocation.longitude},${startLocation.latitude};${midPointsString};${destination.longitude},${destination.latitude}?geometries=geojson&steps=true&overview=full&access_token=${MAPBOX_ACCESS_TOKEN}`;
-  
+  .map((point) => `${point.longitude},${point.latitude}`)
+  .join(";");
+
+      // Add semicolon between midPointsString and destination coordinates
+      const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLocation.longitude},${startLocation.latitude};${midPointsString ? midPointsString + ";" : ""}${destination.longitude},${destination.latitude}?geometries=geojson&steps=true&overview=full&access_token=${MAPBOX_ACCESS_TOKEN}`;
+      console.log("call api ", routeUrl)
+
       const response = await fetch(routeUrl);
       const data = await response.json();
+
+      console.log("data is ", data)
   
       if (data.routes && data.routes.length > 0) {
-        const coordinates = data.routes[0].geometry.coordinates.map((coord) => ({
+        const coordinates = data.routes[0].geometry.coordinates.map((coord: [number, number]) => ({
           latitude: coord[1],
-          longitude: coord[0],
+          longitude: coord[0]
         }));
         setRouteCoordinates(coordinates);
       }
@@ -424,7 +444,7 @@ export default function MapScreen() {
         <Button title="Search" onPress={handleSearch} />
         <FlatList
           data={suggestions}
-          keyExtractor={(item) => item.mapbox_id}
+          keyExtractor={(item: SuggestionItem) => item.mapbox_id}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.suggestionItem}
@@ -446,7 +466,7 @@ export default function MapScreen() {
         <Button title="Search" onPress={handleSearchMid} />
         <FlatList
           data={midSuggestions}
-          keyExtractor={(item) => item.mapbox_id}
+          keyExtractor={(item: SuggestionItem) => item.mapbox_id}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.suggestionItem}
@@ -500,8 +520,11 @@ export default function MapScreen() {
           </>
         )}
       </MapView>
+      {/* <View style={{ marginBottom: 80 }}> */}
       <Button title="Show Route" onPress={handleShowRoute} />
       <Button title={isFocusing ? "Focussing" : "Focus"} onPress={handleFocus} />
+      {/* </View> */}
+      
     </View>
   );
 }
