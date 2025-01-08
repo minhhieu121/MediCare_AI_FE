@@ -37,23 +37,25 @@ const appointments: Appointment[] = [
   },
 ];
 
-const renderAppointment = ({item}: { item: Appointment }) => (
-    <Animated.View
-        entering={FadeIn.duration(800)}
-        className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4"
+const renderAppointment = ({ item }: { item: Appointment }) => (
+  <Animated.View
+    // entering={FadeIn.duration(800)}
+    className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4"
+  >
+    <Text className="text-blue-700 font-psemibold">Bác sĩ: {item.doctor}</Text>
+    <Text className="text-blue-700 font-psemibold">
+      Chuyên Khoa: {item.specialty}
+    </Text>
+    <Text className="text-blue-700 font-psemibold">Ngày: {item.date}</Text>
+    <Text className="text-blue-700 font-psemibold">Giờ: {item.time}</Text>
+    <Text
+      className={`text-sm font-pmedium ${
+        item.status === "Confirmed" ? "text-green-500" : "text-yellow-500"
+      }`}
     >
-      <Text className="text-blue-700 font-psemibold">Bác sĩ: {item.doctor}</Text>
-      <Text className="text-blue-700 font-psemibold">Chuyên Khoa: {item.specialty}</Text>
-      <Text className="text-blue-700 font-psemibold">Ngày: {item.date}</Text>
-      <Text className="text-blue-700 font-psemibold">Giờ: {item.time}</Text>
-      <Text
-          className={`text-sm font-pmedium ${
-              item.status === 'Confirmed' ? 'text-green-500' : 'text-yellow-500'
-          }`}
-      >
-        {item.status}
-      </Text>
-    </Animated.View>
+      {item.status}
+    </Text>
+  </Animated.View>
 );
 
 const ProfileScreen = () => {
