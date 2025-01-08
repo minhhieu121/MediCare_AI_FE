@@ -95,7 +95,7 @@ const ProfileScreen = () => {
   const getMyProfile = async () => {
     try {
       console.log("Token:", token);
-      const response = await fetch(`${process.env.REACT_APP_BASE_API}/api/auth/me`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/me`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,

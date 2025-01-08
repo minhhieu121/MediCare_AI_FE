@@ -439,7 +439,7 @@ const AppointmentScreen = () => {
     setError(null);
     try {
       const response = await fetch(
-          `${process.env.REACT_APP_BASE_API}/api/hospital/?skip=${skip}&limit=${limit}`
+          `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/?skip=${skip}&limit=${limit}`
       );
 
       if (!response.ok) {

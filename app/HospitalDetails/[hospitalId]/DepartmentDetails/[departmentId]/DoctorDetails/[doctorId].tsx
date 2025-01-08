@@ -71,10 +71,10 @@ const DoctorDetails = () => {
   useEffect(() => {
     const fetchDoctorDetails = async () => {
       try {
-        const hospitalUrl = `${process.env.REACT_APP_BASE_API}/api/hospital/${hospitalId}`;
-        const departmentUrl = `${process.env.REACT_APP_BASE_API}/api/department/${departmentId}`;
-        const doctorUrl = `${process.env.REACT_APP_BASE_API}/api/doctor/${doctorId}`;
-        const availableAppointmentUrl = `${process.env.REACT_APP_BASE_API}/api/available-appointments?hospital_id=${hospitalId}&department_id=${departmentId}&doctor_id=${doctorId}`;
+        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/${hospitalId}`;
+        const departmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/department/${departmentId}`;
+        const doctorUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/doctor/${doctorId}`;
+        const availableAppointmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/available-appointments?hospital_id=${hospitalId}&department_id=${departmentId}&doctor_id=${doctorId}`;
 
         const response = await Promise.all([
           fetch(hospitalUrl),
@@ -233,7 +233,7 @@ const DoctorDetails = () => {
 
     setIsBooking(true);
     try {
-      const bookingUrl = `${process.env.REACT_APP_BASE_API}/api/appointments`;
+      const bookingUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/appointments`;
       console.log(bookingData);
       const response = await fetch(bookingUrl, {
         method: "POST",

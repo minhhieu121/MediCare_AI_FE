@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
+// import "../../global.css";
+
 // @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
 

@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 // ---------------------------------------------------
 // Constants
 // ---------------------------------------------------
-const API_BASE_URL = "http://127.0.0.1:8000"; // Update to your actual server IP / domain
+const API_BASE_URL = "http://127.0.0.1:80"; // Update to your actual server IP / domain
 const AUTH_TOKEN_KEY = 'access_token';
 
 // ---------------------------------------------------

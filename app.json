@@ -1,11 +1,13 @@
 {
   "expo": {
-    "name": "myapp",
-    "slug": "myapp",
+    "name": "medicareaiapp",
+    "slug": "medicareaiapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {

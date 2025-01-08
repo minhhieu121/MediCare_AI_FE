@@ -38,8 +38,8 @@ const HospitalDetails = () => {
     const fetchHospitalDetails = async () => {
       try {
         console.log(hospitalId);
-        const hospitalUrl = `${process.env.REACT_APP_BASE_API}/api/hospital/${hospitalId}`;
-        const departmentListUrl = `${process.env.REACT_APP_BASE_API}/api/department/search/${hospitalId}`;
+        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/${hospitalId}`;
+        const departmentListUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/department/search/${hospitalId}`;
 
         const response = await Promise.all([
           fetch(hospitalUrl),

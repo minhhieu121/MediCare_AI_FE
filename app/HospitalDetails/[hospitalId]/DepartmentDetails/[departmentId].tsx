@@ -43,9 +43,9 @@ const DepartmentDetails = () => {
   useEffect(() => {
     const fetchDepartmentDetails = async () => {
       try {
-        const hospitalUrl = `${process.env.REACT_APP_BASE_API}/api/hospital/${hospitalId}`;
-        const departmentUrl = `${process.env.REACT_APP_BASE_API}/api/department/${departmentId}`;
-        const doctorsListUrl = `${process.env.REACT_APP_BASE_API}/api/doctor/search/${hospitalId}/${departmentId}`;
+        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/${hospitalId}`;
+        const departmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/department/${departmentId}`;
+        const doctorsListUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/doctor/search/${hospitalId}/${departmentId}`;
 
         const response = await Promise.all([
           fetch(hospitalUrl),
