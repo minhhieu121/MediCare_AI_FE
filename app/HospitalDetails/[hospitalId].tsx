@@ -18,9 +18,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Department, Hospital } from "@/types/appointment";
 import DepartmentItem from "@/components/DepartmentItem";
 import { LinearGradient } from "expo-linear-gradient";
+import {useAuth} from "@/context/AuthContext";
 
 const HospitalDetails = () => {
   const router = useRouter();
+  const {token} = useAuth();
   const { hospitalId } = useLocalSearchParams(); // Extract the hospital ID from the route params
   const [hospital, setHospital] = useState<Hospital>({
     hospital_name: " ",
@@ -37,13 +39,17 @@ const HospitalDetails = () => {
   useEffect(() => {
     const fetchHospitalDetails = async () => {
       try {
-        console.log(hospitalId);
-        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/${hospitalId}`;
-        const departmentListUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/department/search/${hospitalId}`;
+        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospitals/${hospitalId}`;
+        const departmentListUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/departments/search?hospital_id=${hospitalId}`;
+        const header = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
 
         const response = await Promise.all([
-          fetch(hospitalUrl),
-          fetch(departmentListUrl),
+          fetch(hospitalUrl, header),
+          fetch(departmentListUrl, header),
         ]);
         const hospitalResponse = response[0];
         const foundHospital = await hospitalResponse.json();

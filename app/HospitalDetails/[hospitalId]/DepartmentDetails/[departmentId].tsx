@@ -18,9 +18,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Department, Doctor, Hospital } from "@/types/appointment";
 import DoctorItem from "@/components/DoctorItem";
 import { LinearGradient } from "expo-linear-gradient";
+import {useAuth} from "@/context/AuthContext";
 
 const DepartmentDetails = () => {
   const router = useRouter();
+  const {token} = useAuth();
   const { hospitalId, departmentId } = useLocalSearchParams(); // Extract the department ID from the route params
   const [hospital, setHospital] = useState<Hospital>({
     hospital_name: " ",
@@ -43,14 +45,19 @@ const DepartmentDetails = () => {
   useEffect(() => {
     const fetchDepartmentDetails = async () => {
       try {
-        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/${hospitalId}`;
-        const departmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/department/${departmentId}`;
-        const doctorsListUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/doctor/search/${hospitalId}/${departmentId}`;
+        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospitals/${hospitalId}`;
+        const departmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/departments/${departmentId}`;
+        const doctorsListUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/doctors/search?hospital_id=${hospitalId}&department_id=${departmentId}`;
+        const header = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
 
         const response = await Promise.all([
-          fetch(hospitalUrl),
-          fetch(departmentUrl),
-          fetch(doctorsListUrl),
+          fetch(hospitalUrl, header),
+          fetch(departmentUrl, header),
+          fetch(doctorsListUrl, header),
         ]);
 
         const foundHospital = await response[0].json();

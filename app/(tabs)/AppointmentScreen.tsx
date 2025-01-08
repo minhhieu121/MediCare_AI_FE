@@ -420,10 +420,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 // @ts-ignore
 import {debounce} from 'lodash';
 import HospitalItem from '@/components/HospitalItem';
-import {Hospital} from "@/types/appointment"; // Import mock data
+import {Hospital} from "@/types/appointment";
+import {useAuth} from "@/context/AuthContext"; // Import mock data
 
 const AppointmentScreen = () => {
   const router = useRouter();
+  const {token} = useAuth();
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [filteredHospitals, setFilteredHospitals] = useState<Hospital[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -439,7 +441,13 @@ const AppointmentScreen = () => {
     setError(null);
     try {
       const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/?skip=${skip}&limit=${limit}`
+          `${process.env.EXPO_PUBLIC_API_URL}/api/hospitals?skip=${skip}&limit=${limit}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+          }
       );
 
       if (!response.ok) {

@@ -29,6 +29,7 @@ import { useAuth } from "@/context/AuthContext"; // Import Calendar
 
 const DoctorDetails = () => {
   const router = useRouter();
+  const {token} = useAuth();
   const { hospitalId, departmentId, doctorId } = useLocalSearchParams(); // Extract route params
   const { user } = useAuth(); // Retrieve user data from AuthContext
   const patient_id = user?.user_id; // Extract patient ID from user data
@@ -71,16 +72,21 @@ const DoctorDetails = () => {
   useEffect(() => {
     const fetchDoctorDetails = async () => {
       try {
-        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospital/${hospitalId}`;
-        const departmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/department/${departmentId}`;
-        const doctorUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/doctor/${doctorId}`;
-        const availableAppointmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/available-appointments?hospital_id=${hospitalId}&department_id=${departmentId}&doctor_id=${doctorId}`;
+        const hospitalUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/hospitals/${hospitalId}`;
+        const departmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/departments/${departmentId}`;
+        const doctorUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/doctors/${doctorId}`;
+        const availableAppointmentUrl = `${process.env.EXPO_PUBLIC_API_URL}/api/appointments/available-appointments?hospital_id=${hospitalId}&department_id=${departmentId}&doctor_id=${doctorId}`;
+        const header = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
 
         const response = await Promise.all([
-          fetch(hospitalUrl),
-          fetch(departmentUrl),
-          fetch(doctorUrl),
-          fetch(availableAppointmentUrl),
+          fetch(hospitalUrl, header),
+          fetch(departmentUrl, header),
+          fetch(doctorUrl, header),
+          fetch(availableAppointmentUrl, header),
         ]);
 
         const foundHospital = await response[0].json();
@@ -240,7 +246,7 @@ const DoctorDetails = () => {
         headers: {
           "Content-Type": "application/json",
           // Include authorization headers if required
-          // "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(bookingData),
       });
