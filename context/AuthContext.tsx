@@ -12,7 +12,7 @@ import { jwtDecode } from "jwt-decode";
 // Constants
 // ---------------------------------------------------
 const API_BASE_URL = "http://127.0.0.1:80"; // Update to your actual server IP / domain
-const AUTH_TOKEN_KEY = 'access_token';
+const AUTH_TOKEN_KEY = "access_token";
 
 // ---------------------------------------------------
 // Types & Interfaces
@@ -45,22 +45,24 @@ export interface SignUpData {
   email: string;
   password: string;
   fullname: string;
-  date_of_birth: string;  // or Date object
-  gender: string;         // must match your GenderEnum if necessary
-  user_type: string;      // 'PATIENT' or 'DOCTOR'
+  date_of_birth: string; // or Date object
+  gender: string; // must match your GenderEnum if necessary
+  user_type: string; // 'PATIENT' or 'DOCTOR'
   address: string;
   phone: string;
   profile_image?: string | null;
-  doctor_specialty?: string;    // required if user_type === 'DOCTOR'
-  doctor_experience?: number;   // required if user_type === 'DOCTOR'
+  doctor_specialty?: string; // required if user_type === 'DOCTOR'
+  doctor_experience?: number; // required if user_type === 'DOCTOR'
 }
 
 // ---------------------------------------------------
 // AuthContext
 // ---------------------------------------------------
-export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+export const AuthContext = createContext<AuthContextData>(
+  {} as AuthContextData,
+);
 
-export const AuthProvider = ({children}: AuthProviderProps) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,9 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
       }
     };
     loadStorageData();
+    if (user) {
+      initializeAgent(user);
+    }
   }, []);
 
   // ---------------------------------------------------
@@ -221,6 +226,45 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     } catch (error) {
       console.error("Error decoding token:", error);
       return true;
+    }
+  };
+
+  const initializeAgent = async (user: User) => {
+    setLoading(true);
+    try {
+      const agentIds = [1, 2, 3]; // As specified
+      const basePrompt = JSON.stringify(user); // Replace with your actual base prompt
+
+      const initializationPromises = agentIds.map(async (agentId) => {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_CHATBOT_URL}/agent/${agentId}/base-prompt`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              // Add Authorization header if required
+              Authorization: `Bearer ${token}`, // Ensure user has a token
+            },
+            body: JSON.stringify({ prompt: basePrompt }),
+          },
+        );
+
+        if (response.ok) {
+          console.log(`Agent ${agentId} initialized successfully.`);
+        } else {
+          const errorData = await response.json();
+          console.error(`Agent ${agentId} initialization failed:`, errorData);
+          throw new Error(`Agent ${agentId} initialization failed.`);
+        }
+      });
+
+      // Wait for all agents to be initialized
+      await Promise.all(initializationPromises);
+      console.log("All agents initialized successfully.");
+    } catch (err) {
+      console.error("Error initializing agents:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
