@@ -1,153 +1,307 @@
+// frontend/TestVoiceChat.tsx
+
+import React, { useEffect, useRef, useState } from "react";
 import {
-  StyleSheet,
-  Image,
-  Platform,
-  Text,
   View,
+  Text,
+  TextInput,
   Button,
+  FlatList,
+  Alert,
   TouchableOpacity,
+  Platform,
+  PermissionsAndroid,
 } from "react-native";
+import * as Speech from "expo-speech";
+import { Audio } from "expo-av";
 
-import { Collapsible } from "@/components/Collapsible";
-import { ExternalLink } from "@/components/ExternalLink";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import React, { useContext, useEffect } from "react";
-import "../../global.css";
-import Icon from "react-native-vector-icons/Ionicons";
-import { router } from "expo-router";
-import { AuthContext } from "@/context/AuthContext";
-import FloatingChatbotButton from "@/components/FloatingChatbotButton";
+interface Message {
+  sender: "user" | "bot";
+  text: string;
+}
 
-export default function HomeScreen() {
-  const { token } = useContext(AuthContext);
+const HomeScreen: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordedUri, setRecordedUri] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const ws = useRef<WebSocket | null>(null);
+  const locationInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      router.push("/LoginScreen");
+    // Yêu cầu quyền truy cập vị trí
+    requestLocationPermission();
+
+    // Kết nối WebSocket
+    ws.current = new WebSocket("ws://0.0.0.0:4000/ws/chat"); // Thay đổi URL cho phù hợp
+
+    ws.current.onopen = () => {
+      console.log("WebSocket Connected");
+    };
+
+    ws.current.onmessage = async (e) => {
+      const data = e.data;
+      try {
+        const parsedData = JSON.parse(data);
+        if (parsedData.type === "traffic_alert") {
+          Alert.alert("Cảnh báo giao thông", parsedData.message);
+        } else {
+          setMessages((prev) => [...prev, { sender: "bot", text: data }]);
+          // Sử dụng expo-speech để đọc tin nhắn của bot
+          Speech.speak(data, { language: "vi" });
+        }
+      } catch (error) {
+        setMessages((prev) => [...prev, { sender: "bot", text: data }]);
+        // Sử dụng expo-speech để đọc tin nhắn của bot
+        Speech.speak(data, { language: "vi" });
+      }
+    };
+
+    ws.current.onerror = (e) => {
+      console.log(`WebSocket Error: ${e}`);
+    };
+
+    ws.current.onclose = (e) => {
+      console.log("WebSocket Disconnected");
+    };
+
+    // Gửi vị trí định kỳ mỗi 5 giây
+    // locationInterval.current = setInterval(() => {
+    //   navigator.geolocation.getCurrentPosition(
+    //     (position) => {
+    //       const { latitude, longitude } = position.coords;
+    //       const locationData = JSON.stringify({
+    //         type: "location",
+    //         latitude,
+    //         longitude,
+    //       });
+    //       ws.current?.send(locationData);
+    //       console.log(`Gửi vị trí: ${latitude}, ${longitude}`);
+    //     },
+    //     (error) => console.log(error),
+    //     { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    //   );
+    // }, 5000);
+
+    // Cleanup khi component unmount
+    return () => {
+      ws.current?.close();
+      if (locationInterval.current) {
+        clearInterval(locationInterval.current);
+      }
+    };
+  }, []);
+
+  const requestLocationPermission = async () => {
+    if (Platform.OS === "android") {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: "Quyền truy cập vị trí",
+            message: "Ứng dụng cần quyền truy cập vị trí của bạn",
+            buttonNeutral: "Hỏi lại sau",
+            buttonNegative: "Không",
+            buttonPositive: "Đồng ý",
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log("Bạn đã cấp quyền truy cập vị trí");
+        } else {
+          console.log("Quyền truy cập vị trí bị từ chối");
+        }
+      } catch (err) {
+        console.warn(err);
+      }
     }
-  }, [token]);
+  };
+
+  // Ghi âm giọng nói
+  const startRecording = async () => {
+    try {
+      console.log("Requesting permissions..");
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== "granted") {
+        Alert.alert("Không có quyền truy cập microphone");
+        return;
+      }
+
+      console.log("Starting recording..");
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY,
+      );
+      setRecording(recording);
+      setIsRecording(true);
+      console.log("Recording started");
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      console.log("Stopping recording..");
+      if (!recording) return;
+      await recording.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+      const uri = recording.getURI();
+      setRecording(null);
+      setIsRecording(false);
+      console.log("Recording stopped and stored at", uri);
+      setRecordedUri(uri);
+
+      if (uri) {
+        // Gửi file audio đến API Speech-to-Text
+        console.log("Sending audio to Speech-to-Text API...");
+        const text = await sendAudioToSpeechToText(uri);
+        if (text) {
+          setInput(text);
+          sendMessage(text);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to stop recording", error);
+    }
+  };
+
+  // Hàm gửi audio đến API Speech-to-Text và nhận lại văn bản
+  const sendAudioToSpeechToText = async (
+    uri: string,
+  ): Promise<string | null> => {
+    try {
+      // Bạn cần thay đổi URL API và cách gửi dữ liệu tùy theo dịch vụ bạn sử dụng
+      // Ví dụ sử dụng backend proxy để gửi audio đến dịch vụ Speech-to-Text
+      const apiUrl = "http://0.0.0.0:4000/speech-to-text"; // Thay đổi URL cho phù hợp
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri: uri,
+        name: "recording.wav",
+        type: "audio/wav",
+      } as any); // Ép kiểu thành 'any' để tránh lỗi TypeScript
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          // Thêm các headers cần thiết như Authorization nếu cần
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+      console.log("Result from Speech-to-Text API:", result);
+      // Giả sử API trả về { text: "văn bản nhận diện được" }
+      return result.text || null;
+    } catch (error) {
+      console.error("Error in Speech-to-Text API: ", error);
+      return null;
+    }
+  };
+
+  const sendMessage = (text?: string) => {
+    const messageText = text || input;
+    if (messageText.trim() !== "") {
+      const messageData = JSON.stringify({ type: "text", text: messageText });
+      ws.current?.send(messageData);
+      setMessages((prev) => [...prev, { sender: "user", text: messageText }]);
+      setInput("");
+    }
+  };
+  // Hàm phát lại âm thanh đã ghi
+  const playRecording = async () => {
+    if (!recordedUri) {
+      Alert.alert("Không có ghi âm nào để phát");
+      return;
+    }
+
+    try {
+      console.log("Loading Sound");
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: recordedUri },
+        { shouldPlay: true },
+      );
+      soundRef.current = sound;
+      setIsPlaying(true);
+      console.log("Playing Sound");
+
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.didJustFinish) {
+          setIsPlaying(false);
+          sound.unloadAsync();
+        }
+      });
+    } catch (error) {
+      console.error("Error in playing sound", error);
+    }
+  };
+
+  // Hàm dừng phát lại âm thanh
+  const stopPlaying = async () => {
+    if (soundRef.current) {
+      try {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+        setIsPlaying(false);
+      } catch (error) {
+        console.error("Error in stopping sound", error);
+      }
+    }
+  };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
+    <View className="flex-1 p-4 bg-white">
+      <FlatList
+        data={messages}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View
+            className={
+              item.sender === "user"
+                ? "self-end bg-green-200 p-3 rounded-lg m-1"
+                : "self-start bg-gray-200 p-3 rounded-lg m-1"
+            }
+          >
+            <Text className="text-base">{item.text}</Text>
+          </View>
+        )}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+      />
+      <View className="flex-row items-center mt-2 mb-28">
+        <TextInput
+          className="flex-1 border border-gray-300 rounded-full px-4 py-2 mr-2"
+          value={input}
+          onChangeText={setInput}
+          placeholder="Nhập tin nhắn..."
         />
-      }
-    >
-      <ThemedView>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>
-        This app includes example code to help you get started.
-      </ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{" "}
-          <ThemedText type="defaultSemiBold">
-            app/(tabs)/HomeScreen.tsx
-          </ThemedText>{" "}
-          and{" "}
-          <ThemedText type="defaultSemiBold">
-            app/(tabs)/MapScreen.tsx
-          </ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{" "}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the
-          web version, press <ThemedText type="defaultSemiBold">w</ThemedText>{" "}
-          in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the{" "}
-          <ThemedText type="defaultSemiBold">@2x</ThemedText> and{" "}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to
-          provide files for different screen densities
-        </ThemedText>
-        <Image
-          source={require("@/assets/images/react-logo.png")}
-          style={{ alignSelf: "center" }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText>{" "}
-          to see how to load{" "}
-          <ThemedText style={{ fontFamily: "SpaceMono" }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{" "}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook
-          lets you inspect what the user's current color scheme is, and so you
-          can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{" "}
-          <ThemedText type="defaultSemiBold">
-            components/HelloWave.tsx
-          </ThemedText>{" "}
-          component uses the powerful{" "}
-          <ThemedText type="defaultSemiBold">
-            react-native-reanimated
-          </ThemedText>{" "}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The{" "}
-              <ThemedText type="defaultSemiBold">
-                components/ParallaxScrollView.tsx
-              </ThemedText>{" "}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-      <TouchableOpacity
-        className="bg-green-500 px-6 py-3 rounded-lg flex-1 ml-2 flex-row justify-center items-center"
-        onPress={() => router.push("/Chatbot/2")}
-      >
-        <Icon
-          name="person-add-outline"
-          size={20}
-          color="#fff"
-          className="mr-2"
-        />
-        <Text className="text-white text-center font-medium">Register</Text>
-      </TouchableOpacity>
-    </ParallaxScrollView>
+        <Button title="Gửi" onPress={() => sendMessage()} />
+        <TouchableOpacity
+          onPress={isRecording ? stopRecording : startRecording}
+          className="ml-2 bg-blue-500 p-3 rounded-full"
+        >
+          <Text className="text-white">{isRecording ? "Dừng" : "Ghi"}</Text>
+        </TouchableOpacity>
+        {recordedUri && (
+          <TouchableOpacity
+            onPress={isPlaying ? stopPlaying : playRecording}
+            className="ml-2 bg-purple-500 p-3 rounded-full"
+          >
+            <Text className="text-white">{isPlaying ? "Dừng" : "Phát"}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
   );
-}
+};
+
+export default HomeScreen;

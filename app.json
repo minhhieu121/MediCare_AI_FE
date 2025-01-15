@@ -1,20 +1,23 @@
 {
   "expo": {
     "name": "medicareaiapp",
-    "slug": "medicareaiapp",
+    "slug": "myapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
-      }
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"],
+        "NSMicrophoneUsageDescription": "Ứng dụng cần truy cập microphone để ghi âm giọng nói."
+      },
+      "bundleIdentifier": "com.vinhvu512.myapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -53,6 +56,19 @@
           "locationAlwaysAndWhenInUsePermission": "Allow Medicare AI to use your location.",
           "locationAlwaysPermission": "Allow Medicare AI to use your location.",
           "locationWhenInUsePermission": "Allow Medicare AI to use your location."
+        }
+      ],
+      [
+        "@react-native-voice/voice",
+        {
+          "microphonePermission": "Allow Voice to Medicare AI to access the microphone",
+          "speechRecognitionPermission": "Allow Voice to Medicare AI to securely recognize user speech"
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Voice to Medicare AI to access the microphone"
         }
       ]
     ],
