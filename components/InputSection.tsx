@@ -31,7 +31,7 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend }) => {
   };
 
   return (
-    <View className="flex-row mx-auto w-11/12 mb-4 bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center">
+    <View className="flex-row mx-auto w-11/12 mb-20 bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center">
       {/* Biểu tượng Emoji hoặc Attachment */}
       <TouchableOpacity className="mr-2">
         <Feather name="smile" size={24} color="gray" />

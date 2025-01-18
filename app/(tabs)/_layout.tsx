@@ -46,20 +46,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="ChatbotScreen"
+        options={{
+          title: "Chatbot",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="message.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="AppointmentScreen"
         options={{
           title: "Appointment",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="calendar.badge.plus" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="MedicationReminderScreen"
-        options={{
-          title: "Reminder",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="cross.fill" color={color} />
           ),
         }}
       />

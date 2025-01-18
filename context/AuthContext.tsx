@@ -59,7 +59,7 @@ export interface SignUpData {
 // AuthContext
 // ---------------------------------------------------
 export const AuthContext = createContext<AuthContextData>(
-  {} as AuthContextData
+  {} as AuthContextData,
 );
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
@@ -90,12 +90,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoading(false);
       }
     };
-    loadStorageData().then(() => {
-      if (user) {
-        initializeAgent(user);
-      }
-    });
+    loadStorageData();
   }, []);
+
+  useEffect(() => {
+    if (user && token) {
+      initializeAgent(user, token);
+    }
+  }, [user, token]);
 
   // ---------------------------------------------------
   // Helper function to fetch user data
@@ -112,7 +114,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch user data. Status: ${response.status}`
+          `Failed to fetch user data. Status: ${response.status}`,
         );
       }
       return await response.json();
@@ -230,7 +232,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const initializeAgent = async (user: User | null) => {
+  const initializeAgent = async (user: User | null, token: string) => {
     setLoading(true);
     try {
       const agentIds = [1, 2, 3]; // As specified
@@ -247,7 +249,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               Authorization: `Bearer ${token}`, // Ensure user has a token
             },
             body: JSON.stringify({ prompt: basePrompt }),
-          }
+          },
         );
 
         if (response.ok) {

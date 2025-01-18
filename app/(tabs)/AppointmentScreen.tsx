@@ -179,7 +179,7 @@ const AppointmentScreen = () => {
             />
           )}
         </View>
-        <FloatingChatbotButton chatbotId={2} />
+        {/* <FloatingChatbotButton chatbotId={2} /> */}
       </SafeAreaView>
     </LinearGradient>
   );

@@ -144,12 +144,12 @@ export default function MapScreen() {
     // Yêu cầu quyền truy cập vị trí
     const requestLocationPermission = () => {
       // Gửi vị trí ngay lập tức khi có quyền
-      console.log("Requesting location permission...");
       sendLocation();
 
       // Thiết lập interval để gửi vị trí mỗi 5 giây
       const intervalId = setInterval(() => {
-        // sendLocation();
+        sendLocation();
+        // console.log("Sending location...");
       }, 5000); // 5000ms = 5 giây
 
       // Dọn dẹp interval khi component unmount

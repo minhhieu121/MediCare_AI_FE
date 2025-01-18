@@ -14,7 +14,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isUser }) => {
       {!isUser && (
         <Image
           source={{
-            uri: 'https://via.placeholder.com/150/CCCCCC/FFFFFF?text=Bot',
+            uri: 'https://placehold.co/150/CCCCCC/FFFFFF?text=Bot',
           }}
           className="w-8 h-8 rounded-full mr-2"
         />
