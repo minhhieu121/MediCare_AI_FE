@@ -16,8 +16,7 @@
       "infoPlist": {
         "UIBackgroundModes": ["audio"],
         "NSMicrophoneUsageDescription": "Ứng dụng cần truy cập microphone để ghi âm giọng nói."
-      },
-      "bundleIdentifier": "com.vinhvu512.myapp"
+      }
     },
     "android": {
       "adaptiveIcon": {

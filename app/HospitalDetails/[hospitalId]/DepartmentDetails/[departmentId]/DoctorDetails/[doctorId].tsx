@@ -29,7 +29,7 @@ import { useAuth } from "@/context/AuthContext"; // Import Calendar
 
 const DoctorDetails = () => {
   const router = useRouter();
-  const {token} = useAuth();
+  const { token } = useAuth();
   const { hospitalId, departmentId, doctorId } = useLocalSearchParams(); // Extract route params
   const { user } = useAuth(); // Retrieve user data from AuthContext
   const patient_id = user?.user_id; // Extract patient ID from user data
@@ -69,6 +69,12 @@ const DoctorDetails = () => {
   const [reason, setReason] = useState<string>(""); // To capture the reason for appointment
   const [isBooking, setIsBooking] = useState<boolean>(false); // To manage booking API call loading state
 
+  const formatShift = (shift: number): string => {
+    const hours = Math.floor(shift);
+    const minutes = shift % 1 === 0 ? "00" : "30";
+    return `${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     const fetchDoctorDetails = async () => {
       try {
@@ -80,7 +86,7 @@ const DoctorDetails = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        };
 
         const response = await Promise.all([
           fetch(hospitalUrl, header),
@@ -113,10 +119,10 @@ const DoctorDetails = () => {
         const availableAppointmentsResponse = await response[3].json();
         if (response[3].status === 200) {
           setAvailableAppointments(
-            availableAppointmentsResponse["available_appointments"],
+            availableAppointmentsResponse["available_appointments"]
           );
           const groupedAppointments = groupAppointmentsByDate(
-            availableAppointmentsResponse["available_appointments"],
+            availableAppointmentsResponse["available_appointments"]
           );
           setAppointmentsByDate(groupedAppointments);
         }
@@ -151,7 +157,7 @@ const DoctorDetails = () => {
     if (availableAppointments.length === 0) {
       Alert.alert(
         "No Available Appointments",
-        "This doctor has no available appointments at the moment.",
+        "This doctor has no available appointments at the moment."
       );
       return;
     }
@@ -184,7 +190,7 @@ const DoctorDetails = () => {
     } else {
       Alert.alert(
         "Incomplete Selection",
-        "Please select a date and time for your appointment.",
+        "Please select a date and time for your appointment."
       );
     }
   };
@@ -194,7 +200,7 @@ const DoctorDetails = () => {
     if (!selectedDate || selectedShift === null) {
       Alert.alert(
         "Incomplete Selection",
-        "Please select a date and time for your appointment.",
+        "Please select a date and time for your appointment."
       );
       return;
     }
@@ -202,7 +208,7 @@ const DoctorDetails = () => {
     if (reason.trim() === "") {
       Alert.alert(
         "Missing Reason",
-        "Please provide a reason for your appointment.",
+        "Please provide a reason for your appointment."
       );
       return;
     }
@@ -211,13 +217,13 @@ const DoctorDetails = () => {
     const selectedAppointments = availableAppointments.filter(
       (appt) =>
         appt.appointment_day === selectedDate &&
-        appt.appointment_shift === selectedShift,
+        appt.appointment_shift === selectedShift
     );
 
     if (selectedAppointments.length === 0) {
       Alert.alert(
         "Unavailable Slot",
-        "The selected appointment slot is no longer available.",
+        "The selected appointment slot is no longer available."
       );
       setIsConfirmModalVisible(false);
       return;
@@ -246,7 +252,7 @@ const DoctorDetails = () => {
         headers: {
           "Content-Type": "application/json",
           // Include authorization headers if required
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(bookingData),
       });
@@ -255,7 +261,7 @@ const DoctorDetails = () => {
         Alert.alert(
           "Appointment Confirmed",
           `Your appointment is scheduled on ${new Date(
-            selectedDate,
+            selectedDate
           ).toLocaleDateString("en-GB")} at ${selectedShift}:00.`,
           [
             {
@@ -272,14 +278,14 @@ const DoctorDetails = () => {
                       !(
                         appt.appointment_day === selectedDate &&
                         appt.appointment_shift === selectedShift
-                      ),
-                  ),
+                      )
+                  )
                 );
                 setAppointmentsByDate((prev) => {
                   const updated = { ...prev };
                   if (updated[selectedDate]) {
                     updated[selectedDate] = updated[selectedDate].filter(
-                      (shift) => shift !== selectedShift,
+                      (shift) => shift !== selectedShift
                     );
                     if (updated[selectedDate].length === 0) {
                       delete updated[selectedDate];
@@ -293,13 +299,13 @@ const DoctorDetails = () => {
                 setReason("");
               },
             },
-          ],
+          ]
         );
       } else {
         const errorData = await response.json();
         Alert.alert(
           "Booking Failed",
-          errorData.message || "Unable to book the appointment.",
+          errorData.message || "Unable to book the appointment."
         );
       }
     } catch (err) {
@@ -483,7 +489,7 @@ const DoctorDetails = () => {
                               : "text-gray-800"
                           }`}
                         >
-                          {shift}:00
+                          {formatShift(shift)}
                         </Text>
                       </TouchableOpacity>
                     ))}

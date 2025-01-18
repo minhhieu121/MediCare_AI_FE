@@ -5,7 +5,7 @@ import "../global.css";
 
 const Page = () => {
   const { isLoggedIn } = useContext(AuthContext);
-  if (!isLoggedIn) return <Redirect href="/(tabs)/HomeScreen" />;
+  if (isLoggedIn) return <Redirect href="/(tabs)/HomeScreen" />;
 
   return <Redirect href="/(auth)/Authenticate" />;
 };

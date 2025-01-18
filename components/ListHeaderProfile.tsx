@@ -6,6 +6,7 @@ import {SignUpData} from "@/context/AuthContext";
 
 const ListHeaderProfile = (userData: SignUpData) => {
   const router = useRouter();
+  console.log("userData", userData);
 
   const dateFormat = (date: string) => {
     const year = date.slice(0, 4);

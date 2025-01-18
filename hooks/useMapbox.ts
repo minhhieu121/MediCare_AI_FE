@@ -1,6 +1,7 @@
 // hooks/useMapbox.ts
 import { useState } from "react";
 import { Alert } from "react-native";
+import { useLocation } from "./useLocation";
 
 export interface Coordinate {
   latitude: number;
@@ -19,6 +20,7 @@ interface UseMapboxProps {
 }
 
 export const useMapbox = ({ accessToken }: UseMapboxProps) => {
+  const { startLocation } = useLocation();
   const [sessionToken, setSessionToken] = useState<string>(generateUUID());
 
   // Function to generate a UUID for session tokens
@@ -47,6 +49,7 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
           query,
         )}&language=en&country=vn&access_token=${accessToken}&session_token=${sessionToken}`,
       );
+
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
       }
@@ -74,8 +77,8 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
       console.log(`Fetching midpoint suggestions for: "${query}"`);
       const response = await fetch(
         `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
-          query,
-        )}&language=en&country=vn&access_token=${accessToken}&session_token=${sessionToken}`,
+          query
+        )}&language=en&country=vn&access_token=${accessToken}&session_token=${sessionToken}`
       );
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
@@ -96,14 +99,14 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
    * @returns A promise that resolves to the coordinates of the selected destination.
    */
   const handleSelectSuggestion = async (
-    mapboxId: string,
+    mapboxId: string
   ): Promise<Coordinate | null> => {
     try {
       console.log(`Retrieving place details for ID: ${mapboxId}`);
       const response = await fetch(
         `https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(
-          mapboxId,
-        )}?access_token=${accessToken}&session_token=${sessionToken}`,
+          mapboxId
+        )}?access_token=${accessToken}&session_token=${sessionToken}`
       );
       const data = await response.json();
       if (!data.features || data.features.length === 0) {
@@ -131,14 +134,14 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
    * @returns A promise that resolves to the coordinates of the selected midpoint.
    */
   const handleSelectMidSuggestion = async (
-    mapboxId: string,
+    mapboxId: string
   ): Promise<Coordinate | null> => {
     try {
       console.log(`Retrieving midpoint place details for ID: ${mapboxId}`);
       const response = await fetch(
         `https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(
-          mapboxId,
-        )}?access_token=${accessToken}&session_token=${sessionToken}`,
+          mapboxId
+        )}?access_token=${accessToken}&session_token=${sessionToken}`
       );
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
@@ -173,7 +176,7 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
   const handleShowRoute = async (
     startLocation: Coordinate,
     destination: Coordinate,
-    midPoints: Coordinate[],
+    midPoints: Coordinate[]
   ): Promise<Coordinate[]> => {
     if (!startLocation || !destination) {
       Alert.alert("Error", "Start location or destination is not set.");
@@ -185,6 +188,7 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
       const midPointsString = midPoints
         .map((point) => `${point.longitude},${point.latitude}`)
         .join(";");
+      console.log("midPointsString", midPointsString);
 
       // Check if there are midpoints to add semicolons
       const separator = midPoints.length > 0 ? ";" : "";
@@ -193,7 +197,7 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
       const routeUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${
         startLocation.longitude
       },${startLocation.latitude}${separator}${
-        midPointsString ? midPointsString + ";" : ""
+        midPointsString ? midPointsString + ";" : ";"
       }${destination.longitude},${
         destination.latitude
       }?geometries=geojson&steps=true&overview=full&access_token=${accessToken}`;
@@ -210,7 +214,7 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
             (coord: [number, number]) => ({
               latitude: coord[1],
               longitude: coord[0],
-            }),
+            })
           );
         return coordinates;
       } else {

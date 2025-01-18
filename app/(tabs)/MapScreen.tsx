@@ -20,7 +20,10 @@ import SearchBar from "@/components/SearchBar";
 import { useLocation } from "@/hooks/useLocation";
 import { Coordinate, useMapbox } from "@/hooks/useMapbox";
 import { Ionicons } from "@expo/vector-icons";
-import FloatingChatbotButton from "@/components/FloatingChatbotButton";
+import { Audio } from "expo-av";
+import * as Speech from "expo-speech";
+import FloatingMicroButton from "@/components/FLoatingMicroButton";
+import { set } from "lodash";
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoibWluaGhpZXUxMSIsImEiOiJjbTU4OWdkaXA0MXg3Mmtwa2ZnMXBnbGpvIn0.VcU6Q0FhEgmHMIjSHhu2gA";
@@ -29,6 +32,11 @@ interface Suggestion {
   mapbox_id: string;
   name: string;
   full_address: string;
+}
+
+interface Message {
+  sender: "user" | "bot";
+  text: string;
 }
 
 export default function MapScreen() {
@@ -60,6 +68,11 @@ export default function MapScreen() {
     useState<boolean>(false);
   const [isLoadingMidSuggestions, setIsLoadingMidSuggestions] =
     useState<boolean>(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const ws = useRef<WebSocket | null>(null);
+  const wsUrl = process.env.EXPO_PUBLIC_WS_URL;
 
   const fadeAnimDestination = useRef(new Animated.Value(0)).current;
   const fadeAnimMid = useRef(new Animated.Value(0)).current;
@@ -67,6 +80,191 @@ export default function MapScreen() {
   const mapRef = useRef<MapView | null>(null);
 
   // Handle search for destination
+  useEffect(() => {
+    ws.current = new WebSocket(`ws://${wsUrl}/ws/chat`);
+
+    ws.current.onopen = () => {
+      console.log("WebSocket connection opened");
+    };
+
+    ws.current.onmessage = (e) => {
+      const data = e.data;
+      try {
+        const parsedData = JSON.parse(data);
+        if (parsedData.type === "traffic_alert") {
+          Alert.alert("Cảnh báo giao thông", parsedData.message);
+        } else {
+          // Sử dụng expo-speech để đọc tin nhắn của bot
+          Speech.speak(data, { language: "vi" });
+        }
+      } catch (error) {
+        // Sử dụng expo-speech để đọc tin nhắn của bot
+        Speech.speak(data, { language: "vi" });
+      }
+      setIsLoading(false);
+    };
+
+    ws.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      setIsLoading(false);
+    };
+
+    ws.current.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+
+    return () => {
+      ws.current?.close();
+    };
+  }, [wsUrl]);
+
+  const sendLocation = () => {
+    if (
+      startLocation &&
+      ws.current &&
+      ws.current.readyState === WebSocket.OPEN
+    ) {
+      const locationData = JSON.stringify({
+        type: "location",
+        latitude: startLocation.latitude,
+        longitude: startLocation.longitude,
+      });
+      try {
+        ws.current.send(locationData);
+        console.log(
+          `Gửi vị trí: ${startLocation.latitude}, ${startLocation.longitude}`,
+        );
+      } catch (error) {
+        console.error("Error sending location", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Yêu cầu quyền truy cập vị trí
+    const requestLocationPermission = () => {
+      // Gửi vị trí ngay lập tức khi có quyền
+      console.log("Requesting location permission...");
+      sendLocation();
+
+      // Thiết lập interval để gửi vị trí mỗi 5 giây
+      const intervalId = setInterval(() => {
+        // sendLocation();
+      }, 5000); // 5000ms = 5 giây
+
+      // Dọn dẹp interval khi component unmount
+      return () => clearInterval(intervalId);
+    };
+
+    requestLocationPermission();
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      console.log("Requesting permissions..");
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== "granted") {
+        Alert.alert("Không có quyền truy cập microphone");
+        return;
+      }
+
+      console.log("Starting recording..");
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      setIsRecording(true);
+      console.log("Recording started");
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      console.log("Stopping recording..");
+      if (!recording) return;
+      await recording.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+      });
+      const uri = recording.getURI();
+      setRecording(null);
+      setIsRecording(false);
+      console.log("Recording stopped and stored at", uri);
+
+      if (uri) {
+        // Gửi file audio đến API Speech-to-Text
+        console.log("Sending audio to Speech-to-Text API...");
+        setIsLoading(true); // Bắt đầu loading sau khi dừng ghi âm
+
+        const text = await sendAudioToSpeechToText(uri);
+        sendMessage(text || "Hi");
+        // Trạng thái loading sẽ dừng khi nhận được phản hồi từ WebSocket
+      }
+    } catch (error) {
+      console.error("Failed to stop recording", error);
+      setIsLoading(false); // Đảm bảo loading dừng khi có lỗi
+    }
+  };
+
+  // Hàm gửi audio đến API Speech-to-Text và nhận lại văn bản
+  const sendAudioToSpeechToText = async (
+    uri: string
+  ): Promise<string | null> => {
+    try {
+      // Thay đổi URL API và cách gửi dữ liệu tùy theo dịch vụ bạn sử dụng
+      const apiUrl = `http://${wsUrl}/speech-to-text`; // Thay đổi URL cho phù hợp
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri: uri,
+        name: "recording.wav",
+        type: "audio/wav",
+      } as any); // Ép kiểu thành 'any' để tránh lỗi TypeScript
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          // Thêm các headers cần thiết như Authorization nếu cần
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Failed to send audio to Speech-to-Text API:",
+          response.status
+        );
+        setIsLoading(false);
+        return null;
+      }
+
+      const result = await response.json();
+      console.log("Result from Speech-to-Text API:", result);
+      // Giả sử API trả về { text: "văn bản nhận diện được" }
+      return result.text || null;
+    } catch (error) {
+      console.error("Error in Speech-to-Text API: ", error);
+      setIsLoading(false);
+      return null;
+    }
+  };
+
+  const sendMessage = (text?: string) => {
+    const messageText = text;
+    if (messageText?.trim() !== "") {
+      const messageData = JSON.stringify({ type: "text", text: messageText });
+      ws.current?.send(messageData);
+    }
+  };
+
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!searchQuery.trim()) {
@@ -151,7 +349,7 @@ export default function MapScreen() {
     const fetchedRoute = await handleShowRoute(
       startLocation,
       destination,
-      midPoints,
+      midPoints
     );
     setRouteCoordinates(fetchedRoute);
     setIsLoadingRoute(false);
@@ -191,7 +389,7 @@ export default function MapScreen() {
               const bearing =
                 (Math.atan2(
                   secondPoint.longitude - firstPoint.longitude,
-                  secondPoint.latitude - firstPoint.latitude,
+                  secondPoint.latitude - firstPoint.latitude
                 ) *
                   180) /
                 Math.PI;
@@ -217,7 +415,7 @@ export default function MapScreen() {
 
               mapRef.current.animateCamera(camera, { duration: 500 });
             }
-          },
+          }
         );
       } catch (error) {
         console.error("Error starting location tracking:", error);
@@ -235,7 +433,7 @@ export default function MapScreen() {
           {
             pitch: 0, // Reset pitch
           },
-          { duration: 500 }, // Animation duration
+          { duration: 500 } // Animation duration
         );
       }
     }
@@ -409,7 +607,11 @@ export default function MapScreen() {
           isLoadingRoute={isLoadingRoute}
           isFocusing={isFocusing}
         />
-        <FloatingChatbotButton chatbotId={1} />
+        <FloatingMicroButton
+          onPress={!isRecording ? startRecording : stopRecording}
+          isRecording={isRecording}
+          isLoading={isLoading}
+        />
       </View>
     </KeyboardAvoidingView>
   );

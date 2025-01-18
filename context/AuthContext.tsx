@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 // ---------------------------------------------------
 // Constants
 // ---------------------------------------------------
-const API_BASE_URL = "http://127.0.0.1:80"; // Update to your actual server IP / domain
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL; // Update to your actual server IP / domain
 const AUTH_TOKEN_KEY = "access_token";
 
 // ---------------------------------------------------
@@ -59,7 +59,7 @@ export interface SignUpData {
 // AuthContext
 // ---------------------------------------------------
 export const AuthContext = createContext<AuthContextData>(
-  {} as AuthContextData,
+  {} as AuthContextData
 );
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
@@ -90,10 +90,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setLoading(false);
       }
     };
-    loadStorageData();
-    if (user) {
-      initializeAgent(user);
-    }
+    loadStorageData().then(() => {
+      if (user) {
+        initializeAgent(user);
+      }
+    });
   }, []);
 
   // ---------------------------------------------------
@@ -111,7 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch user data. Status: ${response.status}`,
+          `Failed to fetch user data. Status: ${response.status}`
         );
       }
       return await response.json();
@@ -130,7 +131,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoading(true);
     try {
       const data = { email, password };
-
+      console.log(API_BASE_URL);
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -229,7 +230,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const initializeAgent = async (user: User) => {
+  const initializeAgent = async (user: User | null) => {
     setLoading(true);
     try {
       const agentIds = [1, 2, 3]; // As specified
@@ -246,7 +247,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               Authorization: `Bearer ${token}`, // Ensure user has a token
             },
             body: JSON.stringify({ prompt: basePrompt }),
-          },
+          }
         );
 
         if (response.ok) {
