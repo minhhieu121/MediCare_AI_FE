@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Platform, StyleSheet } from 'react-native';
+// components/InputSection.tsx
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import {SafeAreaView} from "react-native-safe-area-context";
+import { Audio } from 'expo-av';
 
 interface InputSectionProps {
   onSend: (message: string) => void;
+  onSendAudio: (audioUri: string) => void; // Thêm prop để gửi audio
 }
 
-const InputSection: React.FC<InputSectionProps> = ({ onSend }) => {
+const InputSection: React.FC<InputSectionProps> = ({ onSend, onSendAudio }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [message, setMessage] = useState('');
   const [inputHeight, setInputHeight] = useState<number>(48); // Chiều cao mặc định
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSend = () => {
     if (message.trim()) {
@@ -30,11 +41,66 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend }) => {
     }
   };
 
+  const handleMicPressIn = async () => {
+    try {
+      setIsRecording(true);
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Cannot access microphone.');
+        setIsRecording(false);
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HighQuality,
+      );
+      setRecording(recording);
+    } catch (error) {
+      console.error('Failed to start recording', error);
+      Alert.alert('Error', 'Failed to start recording.');
+      setIsRecording(false);
+    }
+  };
+
+  const handleMicPressOut = async () => {
+    if (!isRecording || !recording) return;
+
+    try {
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      if (uri) {
+        onSendAudio(uri); // Gửi URI âm thanh đến parent component
+      }
+      setRecording(null);
+    } catch (error) {
+      console.error('Failed to stop recording', error);
+      Alert.alert('Error', 'Failed to stop recording.');
+      setIsRecording(false);
+    }
+  };
+
   return (
-    <View className="flex-row mx-auto w-11/12 mb-20 bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center">
-      {/* Biểu tượng Emoji hoặc Attachment */}
-      <TouchableOpacity className="mr-2">
-        <Feather name="smile" size={24} color="gray" />
+    <View
+      className="flex-row mx-auto w-11/12 mb-20 bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center h-fit"
+    >
+      {/* Biểu tượng Microphone */}
+      <TouchableOpacity
+        className="mr-2"
+        onPressIn={handleMicPressIn}
+        onPressOut={handleMicPressOut}
+        disabled={isRecording}
+      >
+        {isRecording ? (
+          <Feather name="mic" size={24} color="#1E90FF" />
+        ) : (
+          <Feather name="mic" size={24} color="gray" />
+        )}
       </TouchableOpacity>
 
       {/* Ô Input */}
@@ -44,8 +110,8 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend }) => {
         placeholderTextColor="gray"
         value={message}
         onChangeText={setMessage}
-        onFocus={() => {}}
-        onBlur={() => {}}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         multiline
         maxLength={1000}
         numberOfLines={4}
@@ -59,11 +125,15 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend }) => {
         className="ml-2"
         disabled={!message.trim()}
       >
-        <Ionicons
-          name="send"
-          size={24}
-          color={message.trim() ? '#1E90FF' : 'gray'}
-        />
+        {loading ? (
+          <ActivityIndicator size="small" color="#1E90FF" />
+        ) : (
+          <Ionicons
+            name="send"
+            size={24}
+            color={message.trim() ? '#1E90FF' : 'gray'}
+          />
+        )}
       </TouchableOpacity>
     </View>
   );

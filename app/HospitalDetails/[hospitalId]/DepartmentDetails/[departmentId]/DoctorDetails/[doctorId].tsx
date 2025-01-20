@@ -70,9 +70,17 @@ const DoctorDetails = () => {
   const [isBooking, setIsBooking] = useState<boolean>(false); // To manage booking API call loading state
 
   const formatShift = (shift: number): string => {
-    const hours = Math.floor(shift);
-    const minutes = shift % 1 === 0 ? "00" : "30";
-    return `${hours}:${minutes}`;
+    if (shift >= 0 && shift <= 9) {
+      if (shift % 2 === 0) {
+        return `0${shift + 7}:00 - 0${shift + 7}:30`;
+      }
+      return `0${shift + 7}:30 - 0${shift + 8}:00`;
+    } else {
+      if (shift % 2 === 0) {
+        return `${shift + 3}:00 - ${shift + 3}:30`;
+      }
+      return `${shift + 3}:30 - ${shift + 4}:00`;
+    }
   };
 
   useEffect(() => {
@@ -555,8 +563,7 @@ const DoctorDetails = () => {
                   : ""}
               </Text>
               <Text className="text-gray-700 text-xl">
-                <Text className="font-psemibold">Time:</Text> {selectedShift}
-                :00
+                <Text className="font-psemibold">Time:</Text> {formatShift(selectedShift || 0)}
               </Text>
             </View>
 

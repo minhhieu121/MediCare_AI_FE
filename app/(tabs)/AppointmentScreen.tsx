@@ -41,7 +41,7 @@ const AppointmentScreen = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -77,12 +77,12 @@ const AppointmentScreen = () => {
         setFilteredHospitals(hospitals);
       } else {
         const filtered = hospitals.filter((hospital) =>
-          hospital.hospital_name.toLowerCase().includes(query.toLowerCase()),
+          hospital.hospital_name.toLowerCase().includes(query.toLowerCase())
         );
         setFilteredHospitals(filtered);
       }
     }, 300),
-    [hospitals],
+    [hospitals]
   );
 
   const onChangeSearch = (text: string) => {
@@ -174,7 +174,9 @@ const AppointmentScreen = () => {
                   <View className="py-4">
                     <ActivityIndicator size="small" color="#1e90ff" />
                   </View>
-                ) : null
+                ) : (
+                  <View className="h-20" />
+                )
               }
             />
           )}

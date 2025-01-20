@@ -19,7 +19,7 @@ const ListHeaderProfile = (userData: SignUpData) => {
         {/* Header */}
         <View className="flex-row items-center mb-6 mt-12">
           <Image
-              source={{uri: "https://via.placeholder.com/150"}}
+              source={{uri: "https://picsum.photos/200/200"}}
               className="w-24 h-24 rounded-full mr-4 border-2 border-stone-500"
           />
           <View className="flex-1">
@@ -38,23 +38,23 @@ const ListHeaderProfile = (userData: SignUpData) => {
         <View className="bg-white shadow-custom-light rounded-lg p-6 mb-6">
           <Text className="text-xl font-psemibold text-gray-800 mb-4">Thông Tin Cá Nhân</Text>
           <View className="flex-row items-center mb-3">
-            <Icon name="calendar-outline" size={20} color="#6B7280" className="mr-3"/>
+            <Icon name="calendar-outline" size={20} color="#161D6F" className="mr-3"/>
             <Text className="text-gray-700 font-pregular">Ngày Sinh: {dateFormat(userData.date_of_birth)}</Text>
           </View>
           <View className="flex-row items-center mb-3">
-            <Icon name="male-female-outline" size={20} color="#6B7280" className="mr-3"/>
+            <Icon name="male-female-outline" size={20} color="#161D6F" className="mr-3"/>
             <Text className="text-gray-700 font-pregular">Giới Tính: {userData.gender === "Male" ? "Nam" : "Nữ"}</Text>
           </View>
           <View className="flex-row items-center mb-3">
-            <Icon name="location-outline" size={20} color="#6B7280" className="mr-3"/>
+            <Icon name="location-outline" size={20} color="#161D6F" className="mr-3"/>
             <Text className="text-gray-700 font-pregular">Địa Chỉ: {userData.address}</Text>
           </View>
           <View className="flex-row items-center mb-3">
-            <Icon name="call-outline" size={20} color="#6B7280" className="mr-3"/>
+            <Icon name="call-outline" size={20} color="#161D6F" className="mr-3"/>
             <Text className="text-gray-700 font-pregular">Điện Thoại: {userData.phone}</Text>
           </View>
           <View className="flex-row items-center">
-            <Icon name="mail-outline" size={20} color="#6B7280" className="mr-3"/>
+            <Icon name="mail-outline" size={20} color="#161D6F" className="mr-3"/>
             <Text className="text-gray-700 font-pregular">Email: {userData.email}</Text>
           </View>
         </View>

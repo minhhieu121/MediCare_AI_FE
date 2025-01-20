@@ -233,36 +233,43 @@ const ProfileScreen = () => {
           }
           contentContainerStyle={{ paddingBottom: 20 }}
           className="flex-1 bg-transparent p-4"
+          ListFooterComponent={
+            <View className="px-2 pb-6">
+              <TouchableOpacity
+                onPress={handleLogout}
+                activeOpacity={0.9}
+                className="rounded-3xl"
+              >
+                <LinearGradient
+                  // Gradient colors (from left to right)
+                  colors={["#ff6f61", "#ff914d"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  className="flex-row items-center justify-center rounded-3xl mb-24 shadow-lg"
+                  // If you're not using Tailwind, you can do style={{ paddingVertical: 12, ... }}
+                >
+                  <View className="py-3 px-4 flex-row justify-center rounded-3xl items-center">
+                    <Icon
+                      name="log-out-outline"
+                      size={24}
+                      color="#fff"
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text className="text-white font-psemibold text-lg">
+                      Logout
+                    </Text>
+                  </View>
+                </LinearGradient>
+                <View className="h-20" />
+
+              </TouchableOpacity>
+            </View>
+          }
         />
       )}
 
       {/* Logout Button */}
-      <View className="px-4 pb-6 mb-24">
-        <TouchableOpacity
-          onPress={handleLogout}
-          activeOpacity={0.9}
-          className="rounded-3xl"
-        >
-          <LinearGradient
-            // Gradient colors (from left to right)
-            colors={["#ff6f61", "#ff914d"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="flex-row items-center justify-center rounded-3xl mb-24 shadow-lg"
-            // If you're not using Tailwind, you can do style={{ paddingVertical: 12, ... }}
-          >
-            <View className="py-3 px-4 flex-row justify-center rounded-3xl items-center">
-              <Icon
-                name="log-out-outline"
-                size={24}
-                color="#fff"
-                style={{ marginRight: 8 }}
-              />
-              <Text className="text-white font-psemibold text-lg">Logout</Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+
     </View>
   );
 };

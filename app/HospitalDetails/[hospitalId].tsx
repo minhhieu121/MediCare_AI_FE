@@ -146,7 +146,7 @@ const HospitalDetails = () => {
         <ScrollView className="flex-1">
           {/* Hospital Image */}
           <Image
-            source={{ uri: hospital?.hospital_image }}
+            source={{ uri: hospital?.hospital_image || "https://picsum.photos/200/" }}
             className="w-full h-80"
             resizeMode="cover"
           />
@@ -154,7 +154,7 @@ const HospitalDetails = () => {
           {/* Hospital Details */}
           <View className="px-4 py-4">
             {/* Hospital Name */}
-            <Text className="text-2xl font-psemibold text-whi">
+            <Text className="text-2xl font-psemibold">
               {hospital?.hospital_name}
             </Text>
 
