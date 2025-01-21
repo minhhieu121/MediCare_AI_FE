@@ -83,7 +83,7 @@ export default function MapScreen() {
 
   // Handle search for destination
   useEffect(() => {
-    ws.current = new WebSocket(`ws://${wsUrl}/ws/agent1/${user?.user_id}`);
+    ws.current = new WebSocket(`wss://${wsUrl}/ws/agent1/${user?.user_id}`);
 
     ws.current.onopen = () => {
       console.log("WebSocket connection opened");
@@ -95,20 +95,26 @@ export default function MapScreen() {
         const parsedData = JSON.parse(data);
         console.log(parsedData);
         if (parsedData.event === "caution") {
-          Speech.speak("Đoạn đường sắp tới có thể bị kẹt xe, bạn có muốn đổi tuyến đường không?", { language: "vi" });
+          Speech.speak(
+            "Đoạn đường sắp tới có thể bị kẹt xe, bạn có muốn đổi tuyến đường không?",
+            { language: "vi" }
+          );
         }
 
         if (parsedData.event === "route_data") {
           setIsLoadingRoute(true);
-          const coordinates: Coordinate[] = parsedData.data.routes[0].geometry.coordinates.map(
-            (coord: [number, number]) => ({
-              latitude: coord[1],
-              longitude: coord[0],
-            })
-          );
+          const coordinates: Coordinate[] =
+            parsedData.data.routes[0].geometry.coordinates.map(
+              (coord: [number, number]) => ({
+                latitude: coord[1],
+                longitude: coord[0],
+              })
+            );
           setRouteCoordinates(coordinates);
           setIsLoadingRoute(false);
-          Speech.speak("Tôi đã thay đổi tuyến đường cho bạn rồi!", { language: "vi" });
+          Speech.speak("Tôi đã thay đổi tuyến đường cho bạn rồi!", {
+            language: "vi",
+          });
         }
       } catch (error) {
         // Sử dụng expo-speech để đọc tin nhắn của bot
@@ -236,14 +242,13 @@ export default function MapScreen() {
     }
   };
 
-
   // Hàm gửi audio đến API Speech-to-Text và nhận lại văn bản
   const sendAudioToSpeechToText = async (
     uri: string
   ): Promise<string | null> => {
     try {
       // Thay đổi URL API và cách gửi dữ liệu tùy theo dịch vụ bạn sử dụng
-      const apiUrl = `http://${wsUrl}/speech-to-text`; // Thay đổi URL cho phù hợp
+      const apiUrl = `${process.env.EXPO_PUBLIC_CHATBOT_URL}/speech-to-text`; // Thay đổi URL cho phù hợp
 
       const formData = new FormData();
       formData.append("file", {
@@ -294,16 +299,19 @@ export default function MapScreen() {
     const messageText = text?.trim();
     if (messageText) {
       try {
-        const response = await fetch(`${process.env.EXPO_PUBLIC_CHATBOT_URL}/chat/agent/1`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            query: messageText,
-          })
-        });
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_CHATBOT_URL}/chat/agent/1`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              query: messageText,
+            }),
+          }
+        );
         console.log("Payload being sent:", {
           query: messageText,
         });
@@ -426,7 +434,7 @@ export default function MapScreen() {
   // Handle focus state and animate camera
   useEffect(() => {
     let locationSubscription: ExpoLocation.LocationSubscription | null = null;
-
+  
     const startTracking = async () => {
       try {
         locationSubscription = await ExpoLocation.watchPositionAsync(
@@ -436,47 +444,19 @@ export default function MapScreen() {
             timeInterval: 1000,
           },
           (newLocation) => {
-            const { latitude, longitude } = newLocation.coords;
-
-            // Update the startLocation state
-            // Ensure that setStartLocation is available from useLocation
-            // If not, you might need to adjust the useLocation hook to allow updates from here
-            // Assuming useLocation provides setStartLocation, or adjust accordingly
-            // For this example, we'll assume it's managed within useLocation
-
-            if (isFocusing && routeCoordinates.length > 1 && mapRef.current) {
-              const firstPoint = routeCoordinates[0];
-              const secondPoint = routeCoordinates[1];
-
-              // Calculate bearing from point 0 to point 1
-              const bearing =
-                (Math.atan2(
-                  secondPoint.longitude - firstPoint.longitude,
-                  secondPoint.latitude - firstPoint.latitude
-                ) *
-                  180) /
-                Math.PI;
-
-              // Calculate adjusted center position
-              const offsetDistance = -0.001; // Offset in degrees
-              const adjustedCenter = {
-                latitude:
-                  latitude -
-                  offsetDistance * Math.cos((bearing * Math.PI) / 180),
-                longitude:
-                  longitude -
-                  offsetDistance * Math.sin((bearing * Math.PI) / 180),
-              };
-
-              // Update camera
-              const camera: Camera = {
-                center: adjustedCenter,
-                heading: bearing,
-                pitch: 60,
-                zoom: 18,
-              };
-
-              mapRef.current.animateCamera(camera, { duration: 500 });
+            const { latitude, longitude, heading } = newLocation.coords;
+  
+            // Only animate camera if focusing is ON
+            if (isFocusing && mapRef.current) {
+              mapRef.current.animateCamera(
+                {
+                  center: { latitude, longitude },
+                  heading: heading || 0, // If heading is available, otherwise 0
+                  pitch: 60,
+                  zoom: 18, // pick 17–19 for "tight" follow
+                },
+                { duration: 500 }
+              );
             }
           }
         );
@@ -485,28 +465,30 @@ export default function MapScreen() {
         Alert.alert("Error", "Could not start location tracking.");
       }
     };
-
+  
     if (isFocusing) {
       startTracking();
-    } else if (locationSubscription) {
-      locationSubscription.remove();
     } else {
+      // Stop tracking
+      if (locationSubscription) {
+        locationSubscription.remove();
+      }
+      // Reset camera pitch/heading if desired
       if (mapRef.current) {
         mapRef.current.animateCamera(
-          {
-            pitch: 0, // Reset pitch
-          },
-          { duration: 500 } // Animation duration
+          { pitch: 0, heading: 0 },
+          { duration: 500 }
         );
       }
     }
-
+  
     return () => {
       if (locationSubscription) {
         locationSubscription.remove();
       }
     };
-  }, [isFocusing, routeCoordinates, startLocation]);
+  }, [isFocusing]);
+  
 
   // Animate suggestion dropdowns
   useEffect(() => {
