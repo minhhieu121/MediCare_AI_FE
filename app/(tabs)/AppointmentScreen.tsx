@@ -116,7 +116,7 @@ const AppointmentScreen = () => {
       <SafeAreaView className="flex-1 w-full">
         {/* Search Bar */}
         <View className="px-4 py-2 shadow">
-          <View className="flex-row items-center bg-white rounded-lg p-4">
+          <View className="flex-row mx-auto bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center h-fit">
             <Icon name="search-outline" size={20} color="#666" />
             <TextInput
               placeholder="Search hospitals..."

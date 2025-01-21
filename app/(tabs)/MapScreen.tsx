@@ -24,6 +24,7 @@ import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
 import FloatingMicroButton from "@/components/FLoatingMicroButton";
 import { set } from "lodash";
+import { useAuth } from "@/context/AuthContext";
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoibWluaGhpZXUxMSIsImEiOiJjbTU4OWdkaXA0MXg3Mmtwa2ZnMXBnbGpvIn0.VcU6Q0FhEgmHMIjSHhu2gA";
@@ -78,10 +79,11 @@ export default function MapScreen() {
   const fadeAnimMid = useRef(new Animated.Value(0)).current;
 
   const mapRef = useRef<MapView | null>(null);
+  const {user} = useAuth();
 
   // Handle search for destination
   useEffect(() => {
-    ws.current = new WebSocket(`ws://${wsUrl}/ws/chat`);
+    ws.current = new WebSocket(`wss://${wsUrl}/ws/agent1/${user?.user_id}`);
 
     ws.current.onopen = () => {
       console.log("WebSocket connection opened");
