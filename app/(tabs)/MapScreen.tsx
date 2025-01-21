@@ -23,6 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
 import FloatingMicroButton from "@/components/FLoatingMicroButton";
+import RouteInfo from "@/components/RouteInfo";
 import { method, set } from "lodash";
 import { useAuth } from "@/context/AuthContext";
 
@@ -80,6 +81,9 @@ export default function MapScreen() {
 
   const mapRef = useRef<MapView | null>(null);
   const { user, token } = useAuth();
+  // Inside your MapScreen component
+  const [timeLeft, setTimeLeft] = useState<number>(1200); // 20 minutes in seconds
+  const [distanceLeft, setDistanceLeft] = useState<number>(5300); // 5.3 km in meters
 
   // Handle search for destination
   useEffect(() => {
@@ -521,6 +525,50 @@ export default function MapScreen() {
     }
   }, [suggestions, midSuggestions, fadeAnimDestination, fadeAnimMid]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (routeCoordinates.length > 0) {
+      // Initialize time and distance when a route is set
+      setTimeLeft(1200); // 20 minutes
+      setDistanceLeft(5300); // 5.3 km
+
+      // Start the timer to decrement time and distance every second
+      timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 0) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prevTime - 0.7;
+        });
+
+        setDistanceLeft((prevDistance) => {
+          const decrement = 5300 / 1200; // Approximately 4.42 meters per second
+          if (prevDistance <= 0) {
+            return 0;
+          }
+          return Math.max(prevDistance - decrement, 0);
+        });
+      }, 1000); // 1000ms = 1 second
+    }
+
+    // Cleanup the timer when the component unmounts or routeCoordinates change
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [routeCoordinates]);
+
+  // Format time as "X mins Y secs"
+  const formattedTimeLeft =
+    timeLeft > 0
+      ? `${Math.floor(timeLeft / 60)} mins`
+      : "Arrived";
+
+  // Format distance as "X.X km"
+  const formattedDistance =
+    distanceLeft > 0 ? `${(distanceLeft / 1000).toFixed(1)} km` : "0.0 km";
+
   // Function to remove a midpoint by index
   const removeMidpoint = (index: number) => {
     setMidPoints((prev) => prev.filter((_, i) => i !== index));
@@ -537,6 +585,9 @@ export default function MapScreen() {
       </View>
     );
   }
+
+  const fixedTimeLeft = "20 mins";
+  const fixedDistance = "5.3 km";
 
   return (
     <KeyboardAvoidingView
@@ -627,6 +678,14 @@ export default function MapScreen() {
                 />
               </>
             )}
+          </View>
+        )}
+        {routeCoordinates.length > 0 && (
+          <View className="flex-row justify-center">
+            <RouteInfo
+            timeLeftSeconds={timeLeft}
+            distanceLeftMeters={distanceLeft}
+          />
           </View>
         )}
 
