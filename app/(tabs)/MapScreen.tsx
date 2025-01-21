@@ -446,14 +446,14 @@ export default function MapScreen() {
           (newLocation) => {
             const { latitude, longitude, heading } = newLocation.coords;
   
-            // // Only animate camera if focusing is ON
+            // // Xử lý camera animation nếu đang trong chế độ focus
             // if (isFocusing && mapRef.current) {
             //   mapRef.current.animateCamera(
             //     {
             //       center: { latitude, longitude },
-            //       heading: heading || 0, // If heading is available, otherwise 0
+            //       heading: heading || 0,
             //       pitch: 60,
-            //       zoom: 30, // pick 17–19 for "tight" follow
+            //       zoom: 18,
             //     },
             //     { duration: 500 }
             //   );
