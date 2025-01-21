@@ -23,6 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
 import FloatingMicroButton from "@/components/FLoatingMicroButton";
+import RouteInfo from "@/components/RouteInfo";
 import { method, set } from "lodash";
 import { useAuth } from "@/context/AuthContext";
 
@@ -41,7 +42,7 @@ interface Message {
 }
 
 export default function MapScreen() {
-  const { startLocation, errorMsg } = useLocation();
+  const { startLocation, setStartLocation, errorMsg } = useLocation();
   const {
     handleSearch,
     handleSearchMid,
@@ -80,6 +81,9 @@ export default function MapScreen() {
 
   const mapRef = useRef<MapView | null>(null);
   const { user, token } = useAuth();
+  // Inside your MapScreen component
+  const [timeLeft, setTimeLeft] = useState<number>(1200); // 20 minutes in seconds
+  const [distanceLeft, setDistanceLeft] = useState<number>(5300); // 5.3 km in meters
 
   // Handle search for destination
   useEffect(() => {
@@ -153,12 +157,42 @@ export default function MapScreen() {
     }
   };
 
-  // Thêm useEffect để theo dõi thay đổi routeCoordinates
   useEffect(() => {
     if (routeCoordinates.length > 0) {
-      console.log("Updated:", routeCoordinates);
+      console.log("Route updated:", routeCoordinates);
       setIsFocusing(true);
-      // Code cập nhật bản đồ (nếu cần)
+      
+      // Set điểm bắt đầu là điểm đầu tiên của route
+      const firstPoint = routeCoordinates[0];
+      setStartLocation({
+        latitude: firstPoint.latitude,
+        longitude: firstPoint.longitude,
+        name: "Current Location"
+      });
+  
+      // Tạo interval để di chuyển dọc theo route
+      const moveInterval = setInterval(() => {
+        setRouteCoordinates(prevCoords => {
+          if (prevCoords.length <= 1) {
+            clearInterval(moveInterval);
+            return prevCoords;
+          }
+          
+          // Cập nhật vị trí hiện tại thành điểm tiếp theo
+          const nextPoint = prevCoords[1];
+          setStartLocation({
+            latitude: nextPoint.latitude,
+            longitude: nextPoint.longitude,
+            name: "Current Location"
+          });
+  
+          // Xóa điểm đầu và trả về route mới
+          return prevCoords.slice(1);
+        });
+      }, 1000); // Cập nhật mỗi giây
+  
+      // Cleanup interval khi component unmount hoặc route thay đổi
+      return () => clearInterval(moveInterval);
     }
   }, [routeCoordinates]);
 
@@ -243,7 +277,7 @@ export default function MapScreen() {
   ): Promise<string | null> => {
     try {
       // Thay đổi URL API và cách gửi dữ liệu tùy theo dịch vụ bạn sử dụng
-      const apiUrl = `http://${wsUrl}/speech-to-text`; // Thay đổi URL cho phù hợp
+      const apiUrl = `${process.env.EXPO_PUBLIC_CHATBOT_URL}/speech-to-text`; // Thay đổi URL cho phù hợp
 
       const formData = new FormData();
       formData.append("file", {
@@ -486,20 +520,20 @@ export default function MapScreen() {
       }
     };
 
-    if (isFocusing) {
-      startTracking();
-    } else if (locationSubscription) {
-      locationSubscription.remove();
-    } else {
-      if (mapRef.current) {
-        mapRef.current.animateCamera(
-          {
-            pitch: 0, // Reset pitch
-          },
-          { duration: 500 } // Animation duration
-        );
-      }
-    }
+    // if (isFocusing) {
+    //   startTracking();
+    // } else if (locationSubscription) {
+    //   locationSubscription.remove();
+    // } else {
+    //   if (mapRef.current) {
+    //     mapRef.current.animateCamera(
+    //       {
+    //         pitch: 0, // Reset pitch
+    //       },
+    //       { duration: 500 } // Animation duration
+    //     );
+    //   }
+    // }
 
     return () => {
       if (locationSubscription) {
@@ -539,6 +573,50 @@ export default function MapScreen() {
     }
   }, [suggestions, midSuggestions, fadeAnimDestination, fadeAnimMid]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (routeCoordinates.length > 0) {
+      // Initialize time and distance when a route is set
+      setTimeLeft(1200); // 20 minutes
+      setDistanceLeft(5300); // 5.3 km
+
+      // Start the timer to decrement time and distance every second
+      timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 0) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prevTime - 0.7;
+        });
+
+        setDistanceLeft((prevDistance) => {
+          const decrement = 5300 / 1200; // Approximately 4.42 meters per second
+          if (prevDistance <= 0) {
+            return 0;
+          }
+          return Math.max(prevDistance - decrement, 0);
+        });
+      }, 1000); // 1000ms = 1 second
+    }
+
+    // Cleanup the timer when the component unmounts or routeCoordinates change
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [routeCoordinates]);
+
+  // Format time as "X mins Y secs"
+  const formattedTimeLeft =
+    timeLeft > 0
+      ? `${Math.floor(timeLeft / 60)} mins`
+      : "Arrived";
+
+  // Format distance as "X.X km"
+  const formattedDistance =
+    distanceLeft > 0 ? `${(distanceLeft / 1000).toFixed(1)} km` : "0.0 km";
+
   // Function to remove a midpoint by index
   const removeMidpoint = (index: number) => {
     setMidPoints((prev) => prev.filter((_, i) => i !== index));
@@ -555,6 +633,9 @@ export default function MapScreen() {
       </View>
     );
   }
+
+  const fixedTimeLeft = "20 mins";
+  const fixedDistance = "5.3 km";
 
   return (
     <KeyboardAvoidingView
@@ -645,6 +726,14 @@ export default function MapScreen() {
                 />
               </>
             )}
+          </View>
+        )}
+        {routeCoordinates.length > 0 && (
+          <View className="flex-row justify-center">
+            <RouteInfo
+            timeLeftSeconds={timeLeft}
+            distanceLeftMeters={distanceLeft}
+          />
           </View>
         )}
 

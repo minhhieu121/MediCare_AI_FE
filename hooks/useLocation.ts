@@ -7,7 +7,6 @@ import { Coordinate } from "./useMapbox";
 export const useLocation = () => {
   const [startLocation, setStartLocation] = useState<Coordinate | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const debugCount = useRef<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -18,27 +17,12 @@ export const useLocation = () => {
           return;
         }
 
-        debugCount.current += 1;
-        console.log("Location permission granted. Count:", debugCount.current);
-
         let currentLocation = await Location.getCurrentPositionAsync({});
         setStartLocation({
           latitude: currentLocation.coords.latitude,
           longitude: currentLocation.coords.longitude,
           name: "Current Location",
         });
-
-        await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.High,
-            distanceInterval: 0,
-            timeInterval: 500,
-          },
-          (newLocation) => {
-            const { latitude, longitude } = newLocation.coords;
-            setStartLocation({ latitude, longitude, name: "Current Location" });
-          },
-        );
       } catch (error) {
         console.error("Error getting location:", error);
         setErrorMsg("An error occurred while fetching location.");
@@ -47,5 +31,5 @@ export const useLocation = () => {
     })();
   }, []);
 
-  return { startLocation, errorMsg };
+  return { startLocation, setStartLocation, errorMsg };
 };
