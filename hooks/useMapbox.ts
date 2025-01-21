@@ -204,10 +204,14 @@ export const useMapbox = ({ accessToken }: UseMapboxProps) => {
 
       console.log(`Fetching route from: "${routeUrl}"`);
       const response = await fetch(routeUrl);
+
       if (!response.ok) {
         throw new Error(`API responded with status ${response.status}`);
       }
       const data = await response.json();
+
+      console.log(data)
+      
       if (data.routes && data.routes.length > 0) {
         const coordinates: Coordinate[] =
           data.routes[0].geometry.coordinates.map(

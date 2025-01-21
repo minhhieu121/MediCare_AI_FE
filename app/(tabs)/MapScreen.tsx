@@ -23,7 +23,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
 import FloatingMicroButton from "@/components/FLoatingMicroButton";
-import { set } from "lodash";
+import { method, set } from "lodash";
+import { useAuth } from "@/context/AuthContext";
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoibWluaGhpZXUxMSIsImEiOiJjbTU4OWdkaXA0MXg3Mmtwa2ZnMXBnbGpvIn0.VcU6Q0FhEgmHMIjSHhu2gA";
@@ -78,10 +79,11 @@ export default function MapScreen() {
   const fadeAnimMid = useRef(new Animated.Value(0)).current;
 
   const mapRef = useRef<MapView | null>(null);
+  const { user, token } = useAuth();
 
   // Handle search for destination
   useEffect(() => {
-    ws.current = new WebSocket(`ws://${wsUrl}/ws/chat`);
+    ws.current = new WebSocket(`ws://${wsUrl}/ws/agent1/${user?.user_id}`);
 
     ws.current.onopen = () => {
       console.log("WebSocket connection opened");
@@ -91,11 +93,22 @@ export default function MapScreen() {
       const data = e.data;
       try {
         const parsedData = JSON.parse(data);
-        if (parsedData.type === "traffic_alert") {
-          Alert.alert("Cảnh báo giao thông", parsedData.message);
-        } else {
-          // Sử dụng expo-speech để đọc tin nhắn của bot
-          Speech.speak(data, { language: "vi" });
+        console.log(parsedData);
+        if (parsedData.event === "caution") {
+          Speech.speak("Đoạn đường sắp tới có thể bị kẹt xe, bạn có muốn đổi tuyến đường không?", { language: "vi" });
+        }
+
+        if (parsedData.event === "route_data") {
+          setIsLoadingRoute(true);
+          const coordinates: Coordinate[] = parsedData.data.routes[0].geometry.coordinates.map(
+            (coord: [number, number]) => ({
+              latitude: coord[1],
+              longitude: coord[0],
+            })
+          );
+          setRouteCoordinates(coordinates);
+          setIsLoadingRoute(false);
+          Speech.speak("Tôi đã thay đổi tuyến đường cho bạn rồi!", { language: "vi" });
         }
       } catch (error) {
         // Sử dụng expo-speech để đọc tin nhắn của bot
@@ -131,14 +144,23 @@ export default function MapScreen() {
       });
       try {
         ws.current.send(locationData);
-        console.log(
-          `Gửi vị trí: ${startLocation.latitude}, ${startLocation.longitude}`,
-        );
+        // console.log(
+        //   `Gửi vị trí: ${startLocation.latitude}, ${startLocation.longitude}`,
+        // );
       } catch (error) {
         console.error("Error sending location", error);
       }
     }
   };
+
+  // Thêm useEffect để theo dõi thay đổi routeCoordinates
+  useEffect(() => {
+    if (routeCoordinates.length > 0) {
+      console.log("Updated:", routeCoordinates);
+      setIsFocusing(true);
+      // Code cập nhật bản đồ (nếu cần)
+    }
+  }, [routeCoordinates]);
 
   useEffect(() => {
     // Yêu cầu quyền truy cập vị trí
@@ -204,7 +226,8 @@ export default function MapScreen() {
         setIsLoading(true); // Bắt đầu loading sau khi dừng ghi âm
 
         const text = await sendAudioToSpeechToText(uri);
-        sendMessage(text || "Hi");
+        await sendMessage(text || "Hi");
+        setIsLoading(false);
         // Trạng thái loading sẽ dừng khi nhận được phản hồi từ WebSocket
       }
     } catch (error) {
@@ -212,6 +235,7 @@ export default function MapScreen() {
       setIsLoading(false); // Đảm bảo loading dừng khi có lỗi
     }
   };
+
 
   // Hàm gửi audio đến API Speech-to-Text và nhận lại văn bản
   const sendAudioToSpeechToText = async (
@@ -256,12 +280,51 @@ export default function MapScreen() {
       return null;
     }
   };
+  /***
+   * - User: Bạn hãy giúp tôi tạo đường đi từ vị trí hiện tại đến chợ Võ Thành Trang
+  - Chatbot: Có phải bạn muốn đến chợ Võ Thành Trang ở địa chỉ 15 đường Trường Chinh, Phường 13, Tân Bình, Hồ Chí Minh, Việt Nam không?
+  - User: Đúng vậy
+  - Chatbot: Tôi vừa tạo đường đi cho bạn! Nếu có thêm yêu cầu nào, bạn hãy gọi cho tôi để hỗ trợ bạn.
+  
+  - User: Có, bạn hãy đổi cho tôi
+  - Chatbot: Tôi vừa cho bạn một tuyến đường mới đi qua đường Phạm Phú Thứ để tránh kẹt xe! Nếu bạn cần giúp đỡ thêm hãy nói cho tôi biết.
+   */
 
-  const sendMessage = (text?: string) => {
-    const messageText = text;
-    if (messageText?.trim() !== "") {
-      const messageData = JSON.stringify({ type: "text", text: messageText });
-      ws.current?.send(messageData);
+  const sendMessage = async (text?: string) => {
+    const messageText = text?.trim();
+    if (messageText) {
+      try {
+        const response = await fetch(`${process.env.EXPO_PUBLIC_CHATBOT_URL}/chat/agent/1`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: messageText,
+          })
+        });
+        console.log("Payload being sent:", {
+          query: messageText,
+        });
+        if (!response.ok) {
+          console.log(`HTTP error! status: ${response.status}`);
+          throw new Error("Failed to fetch response from API");
+        }
+
+        const data = await response.json();
+        console.log("API response:", data);
+
+        if (data.response) {
+          Speech.speak(data.response, { language: "vi" });
+        } else {
+          console.log("No response text available.");
+        }
+      } catch (e) {
+        console.error("Error in sendMessage:", e);
+      }
+    } else {
+      console.log("Message text is empty or undefined.");
     }
   };
 
