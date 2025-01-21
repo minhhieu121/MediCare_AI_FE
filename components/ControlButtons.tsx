@@ -1,4 +1,5 @@
 // components/ControlButtons.tsx
+import { FontAwesome6, Octicons } from "@expo/vector-icons";
 import React from "react";
 import { View, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 
@@ -33,13 +34,14 @@ const ControlButtons: React.FC<ControlButtonsProps> = ({
       </TouchableOpacity>
       <TouchableOpacity
         onPress={onToggleFocus}
-        className="bg-indigo-500 rounded-lg p-3 ml-2 shadow"
+        className="bg-indigo-500 rounded-full p-4 ml-2 shadow flex-row justify-center"
         accessible={true}
         accessibilityLabel="Toggle Focus"
       >
-        <Text className="text-center text-white font-semibold">
+        {/* <Text className="text-center text-white font-semibold">
           {isFocusing ? "Focusing" : "Focus"}
-        </Text>
+        </Text> */}
+        <FontAwesome6 name="location-crosshairs" size={26} color="#fff"/>
       </TouchableOpacity>
     </View>
   );

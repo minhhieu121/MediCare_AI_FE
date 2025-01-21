@@ -14,9 +14,12 @@
         "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
       },
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "NSMicrophoneUsageDescription": "Ứng dụng cần truy cập microphone để ghi âm giọng nói."
-      }
+      },
+      "bundleIdentifier": "com.vinhvu512.myapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +33,9 @@
       },
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
     "web": {
@@ -81,6 +86,7 @@
       "eas": {
         "projectId": "975b9bcc-c120-4e2a-8006-488fea695cde"
       }
-    }
+    },
+    "owner": "vinhvu512"
   }
 }
