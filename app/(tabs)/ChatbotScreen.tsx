@@ -143,7 +143,7 @@ const ChatbotScreen: React.FC = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <HeaderChatbot />
-      <View className="border-b border-gray-300 w-auto"></View>
+      {/* <View className="border-b border-gray-300 w-auto"></View> */}
       {/* <GestureHandlerRootView style={{ flex: 1 }}> */}
         {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
           <KeyboardAvoidingView

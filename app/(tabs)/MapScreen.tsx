@@ -453,7 +453,7 @@ export default function MapScreen() {
                   center: { latitude, longitude },
                   heading: heading || 0, // If heading is available, otherwise 0
                   pitch: 60,
-                  zoom: 18, // pick 17–19 for "tight" follow
+                  zoom: 30, // pick 17–19 for "tight" follow
                 },
                 { duration: 500 }
               );

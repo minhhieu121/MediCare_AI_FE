@@ -43,7 +43,7 @@ export default function RecentReportsView() {
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center">
           <Ionicons name="document-text-outline" size={20} color="#FEA5AD" />
-          <Text className="text-base ml-1 font-psemibold text-gray-900">
+          <Text className="text-lg ml-1 font-psemibold text-gray-800">
             Recent Health Reports
           </Text>
         </View>
