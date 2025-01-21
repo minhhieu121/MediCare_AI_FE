@@ -23,6 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import * as Speech from "expo-speech";
 import FloatingMicroButton from "@/components/FLoatingMicroButton";
+import RouteInfo from "@/components/RouteInfo";
 import { method, set } from "lodash";
 import { useAuth } from "@/context/AuthContext";
 
@@ -80,6 +81,58 @@ export default function MapScreen() {
 
   const mapRef = useRef<MapView | null>(null);
   const { user, token } = useAuth();
+  // Inside your MapScreen component
+  const [timeLeft, setTimeLeft] = useState<number>(1200); // 20 minutes in seconds
+  const [distanceLeft, setDistanceLeft] = useState<number>(5300); // 5.3 km in meters
+
+  // Add new interface at top of file
+interface BasicCoordinate {
+  latitude: number;
+  longitude: number;
+}
+
+// Update helper functions
+const calculateDistance2D = (point1: BasicCoordinate, point2: BasicCoordinate) => {
+  return Math.sqrt(
+    Math.pow(point2.latitude - point1.latitude, 2) +
+    Math.pow(point2.longitude - point1.longitude, 2)
+  );
+};
+
+const findNearestPointIndex = (currentLocation: BasicCoordinate, route: Coordinate[]) => {
+  let nearestIndex = -1;
+  let minDistance = Infinity;
+
+  route.slice(0, 20).forEach((point, index) => {
+    const distance = calculateDistance2D(currentLocation, point);
+    if (distance < minDistance && distance < 0.0001) {
+      minDistance = distance;
+      nearestIndex = index;
+    }
+  });
+
+  return nearestIndex;
+};
+
+const interpolatePoints = (
+  start: BasicCoordinate,
+  end: BasicCoordinate,
+  numPoints: number
+): BasicCoordinate[] => {
+  const points: BasicCoordinate[] = [];
+  const latStep = (end.latitude - start.latitude) / (numPoints + 1);
+  const lonStep = (end.longitude - start.longitude) / (numPoints + 1);
+
+  for (let i = 1; i <= numPoints; i++) {
+    points.push({
+      latitude: start.latitude + latStep * i,
+      longitude: start.longitude + lonStep * i,
+    });
+  }
+
+  return points;
+};
+
 
   // Handle search for destination
   useEffect(() => {
@@ -103,15 +156,37 @@ export default function MapScreen() {
 
         if (parsedData.event === "route_data") {
           setIsLoadingRoute(true);
-          const coordinates: Coordinate[] =
+        
+          // Lấy danh sách tọa độ gốc
+          const originalCoordinates: Coordinate[] =
             parsedData.data.routes[0].geometry.coordinates.map(
               (coord: [number, number]) => ({
                 latitude: coord[1],
                 longitude: coord[0],
               })
             );
-          setRouteCoordinates(coordinates);
+        
+          // Tạo danh sách tọa độ với các điểm nội suy
+          const interpolatedCoordinates: Coordinate[] = [];
+          for (let i = 0; i < originalCoordinates.length - 1; i++) {
+            const start = originalCoordinates[i];
+            const end = originalCoordinates[i + 1];
+        
+            // Thêm điểm gốc
+            interpolatedCoordinates.push(start);
+        
+            // Thêm 10 điểm nội suy
+            const interpolatedPoints = interpolatePoints(start, end, 10);
+            interpolatedCoordinates.push(...interpolatedPoints);
+          }
+        
+          // Thêm điểm cuối cùng
+          interpolatedCoordinates.push(originalCoordinates[originalCoordinates.length - 1]);
+        
+          // Cập nhật routeCoordinates
+          setRouteCoordinates(interpolatedCoordinates);
           setIsLoadingRoute(false);
+        
           Speech.speak("Tôi đã thay đổi tuyến đường cho bạn rồi!", {
             language: "vi",
           });
@@ -431,7 +506,6 @@ export default function MapScreen() {
     setIsFocusing((prev) => !prev);
   };
 
-  // Handle focus state and animate camera
   useEffect(() => {
     let locationSubscription: ExpoLocation.LocationSubscription | null = null;
   
@@ -445,6 +519,20 @@ export default function MapScreen() {
           },
           (newLocation) => {
             const { latitude, longitude, heading } = newLocation.coords;
+            const currentLocation: BasicCoordinate = { latitude, longitude };
+  
+            // Cập nhật route coordinates dựa trên vị trí hiện tại
+            setRouteCoordinates((prevRouteCoordinates) => {
+              if (prevRouteCoordinates.length > 1) {
+                const nearestIndex = findNearestPointIndex(currentLocation, prevRouteCoordinates);
+                
+                if (nearestIndex !== -1) {
+                  // Chỉ giữ lại các điểm sau điểm gần nhất
+                  return prevRouteCoordinates.slice(nearestIndex + 1);
+                }
+              }
+              return prevRouteCoordinates;
+            });
   
             // // Xử lý camera animation nếu đang trong chế độ focus
             // if (isFocusing && mapRef.current) {
@@ -469,11 +557,9 @@ export default function MapScreen() {
     if (isFocusing) {
       startTracking();
     } else {
-      // Stop tracking
       if (locationSubscription) {
         locationSubscription.remove();
       }
-      // Reset camera pitch/heading if desired
       if (mapRef.current) {
         mapRef.current.animateCamera(
           { pitch: 0, heading: 0 },
@@ -487,7 +573,7 @@ export default function MapScreen() {
         locationSubscription.remove();
       }
     };
-  }, [isFocusing]);
+  }, [isFocusing, routeCoordinates]);
   
 
   // Animate suggestion dropdowns
@@ -521,6 +607,50 @@ export default function MapScreen() {
     }
   }, [suggestions, midSuggestions, fadeAnimDestination, fadeAnimMid]);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (routeCoordinates.length > 0) {
+      // Initialize time and distance when a route is set
+      setTimeLeft(1200); // 20 minutes
+      setDistanceLeft(5300); // 5.3 km
+
+      // Start the timer to decrement time and distance every second
+      timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 0) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prevTime - 0.7;
+        });
+
+        setDistanceLeft((prevDistance) => {
+          const decrement = 5300 / 1200; // Approximately 4.42 meters per second
+          if (prevDistance <= 0) {
+            return 0;
+          }
+          return Math.max(prevDistance - decrement, 0);
+        });
+      }, 1000); // 1000ms = 1 second
+    }
+
+    // Cleanup the timer when the component unmounts or routeCoordinates change
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [routeCoordinates]);
+
+  // Format time as "X mins Y secs"
+  const formattedTimeLeft =
+    timeLeft > 0
+      ? `${Math.floor(timeLeft / 60)} mins`
+      : "Arrived";
+
+  // Format distance as "X.X km"
+  const formattedDistance =
+    distanceLeft > 0 ? `${(distanceLeft / 1000).toFixed(1)} km` : "0.0 km";
+
   // Function to remove a midpoint by index
   const removeMidpoint = (index: number) => {
     setMidPoints((prev) => prev.filter((_, i) => i !== index));
@@ -537,6 +667,9 @@ export default function MapScreen() {
       </View>
     );
   }
+
+  const fixedTimeLeft = "20 mins";
+  const fixedDistance = "5.3 km";
 
   return (
     <KeyboardAvoidingView
@@ -627,6 +760,14 @@ export default function MapScreen() {
                 />
               </>
             )}
+          </View>
+        )}
+        {routeCoordinates.length > 0 && (
+          <View className="flex-row justify-center">
+            <RouteInfo
+            timeLeftSeconds={timeLeft}
+            distanceLeftMeters={distanceLeft}
+          />
           </View>
         )}
 
