@@ -68,6 +68,10 @@ export default function RootLayout() {
               name="Chatbot/[chatbotId]"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="SpecialtyDetails/[specialtyId]"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="auto" />
