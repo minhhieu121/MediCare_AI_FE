@@ -446,18 +446,18 @@ export default function MapScreen() {
           (newLocation) => {
             const { latitude, longitude, heading } = newLocation.coords;
   
-            // Only animate camera if focusing is ON
-            if (isFocusing && mapRef.current) {
-              mapRef.current.animateCamera(
-                {
-                  center: { latitude, longitude },
-                  heading: heading || 0, // If heading is available, otherwise 0
-                  pitch: 60,
-                  zoom: 30, // pick 17–19 for "tight" follow
-                },
-                { duration: 500 }
-              );
-            }
+            // // Only animate camera if focusing is ON
+            // if (isFocusing && mapRef.current) {
+            //   mapRef.current.animateCamera(
+            //     {
+            //       center: { latitude, longitude },
+            //       heading: heading || 0, // If heading is available, otherwise 0
+            //       pitch: 60,
+            //       zoom: 30, // pick 17–19 for "tight" follow
+            //     },
+            //     { duration: 500 }
+            //   );
+            // }
           }
         );
       } catch (error) {
