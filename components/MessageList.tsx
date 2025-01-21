@@ -20,7 +20,7 @@ const MessageList: React.FC<MessageListProps> = ({messages}) => {
     scrollViewRef.current?.scrollToEnd({animated: true})
   }, [messages])
   return (
-      <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={true} className="flex-1" contentContainerStyle={{padding: 10}}>
+      <ScrollView ref={scrollViewRef} contentContainerStyle={{padding: 10}}>
         {messages.map((item) => (
             <MessageBubble key={item.id} message={item.text} isUser={item.isUser}/>
         ))}
