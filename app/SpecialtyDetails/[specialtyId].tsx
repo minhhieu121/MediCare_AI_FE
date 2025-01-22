@@ -155,7 +155,14 @@ const SpecialtyDetails = () => {
                   <Text className="text-gray-500 font-pregular text-center">
                     {doctor.specialty}
                   </Text>
-                  <TouchableOpacity className="bg-indigo-900 py-2 rounded-md mt-4">
+                  <TouchableOpacity
+                    className="bg-indigo-900 py-2 rounded-md mt-4"
+                    onPress={() =>
+                      router.push(
+                        `/HospitalDetails/35/DepartmentDetails/35/DoctorDetails/83`
+                      )
+                    }
+                  >
                     <Text className="text-white text-center font-psemibold">
                       Book Consult
                     </Text>
