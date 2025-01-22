@@ -116,7 +116,7 @@ export default function HomeDateAndAppointment() {
               </Text>
             </TouchableOpacity>
             <View className="flex-col items-center w-full ml-16 mt-6">
-              <Text className="text-white font-pbold text-2xl">
+              <Text className="text-white font-pbold text-xl">
                 Ask any thing with
               </Text>
               <Text className="text-white font-pbold text-2xl">

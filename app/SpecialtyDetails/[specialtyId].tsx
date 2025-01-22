@@ -134,7 +134,7 @@ const SpecialtyDetails = () => {
               filteredDoctors.map((doctor) => (
                 <View
                   key={doctor.id}
-                  className={`w-[48%] p-4 py-8 ${doctor.bgColor} rounded-xl mb-4`}
+                  className={`w-[48%] p-4 py-8 bg-stone-50 border border-gray-100 shadow-custom-light rounded-xl mb-4`}
                 >
                   <View className="relative items-center flex-col mb-6">
                     <Image

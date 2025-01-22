@@ -60,7 +60,7 @@ export default function HomeBlogs() {
             key={blog.id}
             style={{
               borderLeftWidth: 4,
-              borderLeftColor: blog.categoryColor,
+              borderLeftColor: "#1A8BFF",
             }}
             className="w-52 h-60 mr-4 bg-white rounded-xl shadow-gray-700 shadow-xl overflow-hidden border border-gray-50"
             onPress={() => console.log("Xem chi tiết blog:", blog.title)}
@@ -78,9 +78,9 @@ export default function HomeBlogs() {
                 {/* Badge category */}
                 <View
                   className="px-2 py-1 rounded-full"
-                  style={{ backgroundColor: blog.categoryColor }}
+                  // style={{ backgroundColor: "#1A8BFF" }}
                 >
-                  <Text className="text-white text-[10px] font-pmedium">
+                  <Text className="text-[#1A8BFF] text-[10px] font-pmedium">
                     {blog.category}
                   </Text>
                 </View>
