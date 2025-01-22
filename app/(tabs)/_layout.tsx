@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import React from "react";
 import { View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; 
+import { FontAwesome, FontAwesome5, FontAwesome6, Fontisto, Ionicons } from "@expo/vector-icons"; 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 // Bỏ hoặc giữ nếu bạn dùng custom haptic
@@ -70,7 +70,7 @@ export default function TabLayout() {
         options={{
           title: "Map",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="paper-plane" size={size} color={color} />
+            <FontAwesome name="map" size={size} color={color} />
           ),
         }}
       />

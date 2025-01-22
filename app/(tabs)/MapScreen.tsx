@@ -535,17 +535,17 @@ const interpolatePoints = (
             });
   
             // // Xử lý camera animation nếu đang trong chế độ focus
-            // if (isFocusing && mapRef.current) {
-            //   mapRef.current.animateCamera(
-            //     {
-            //       center: { latitude, longitude },
-            //       heading: heading || 0,
-            //       pitch: 60,
-            //       zoom: 18,
-            //     },
-            //     { duration: 500 }
-            //   );
-            // }
+            if (isFocusing && mapRef.current) {
+              mapRef.current.animateCamera(
+                {
+                  center: { latitude, longitude },
+                  heading: heading || 0,
+                  pitch: 60,
+                  zoom: 18,
+                },
+                { duration: 500 }
+              );
+            }
           }
         );
       } catch (error) {

@@ -184,7 +184,7 @@ const AppointmentDetails: React.FC = () => {
             </Text>
           </View>
         </View>
-        <RecentReportsView />
+        {/* <RecentReportsView /> */}
       </ScrollView>
     </SafeAreaView>
   );

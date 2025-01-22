@@ -330,7 +330,7 @@ const AppointmentScreen = () => {
           {surgeries.map((surgery, index) => (
             <View
               key={index}
-              className={`mr-4 p-5 rounded-lg shadow ${surgery.bgColor} w-60`}
+              className={`mr-4 p-5 py-8 rounded-lg shadow-custom-light ${surgery.bgColor} w-60`}
             >
               <Text
                 className={`text-white px-2 py-1 rounded-full self-start text-xs ${surgery.textColor}`}
@@ -366,7 +366,7 @@ const AppointmentScreen = () => {
             {orthopedicSpecials.map((item, index) => (
               <View
                 key={index}
-                className="flex-row items-center justify-between bg-[#f2f3f7] rounded-2xl p-5 shadow-sm mb-3"
+                className="flex-row items-center justify-between bg-[#f2f3f7] rounded-xl border border-gray-100 p-5 shadow-custom-light mb-4"
                 style={{ height: 80, borderRadius: 20 }}
               >
                 <Text className="text-lg font-semibold text-indigo-950">
