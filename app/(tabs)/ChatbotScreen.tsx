@@ -14,7 +14,10 @@ import InputSection from "@/components/InputSection";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
-import { useLocalSearchParams } from "expo-router";
+import { Audio } from "expo-av";
+import * as FileSystem from "expo-file-system";
+import { set } from "lodash";
+import { encode as btoa } from 'base-64';
 
 interface Message {
   id: string;
@@ -31,6 +34,88 @@ const ChatbotScreen: React.FC = () => {
   ]);
   const [loading, setLoading] = useState<boolean>(false); // To manage loading states
   const [error, setError] = useState<string | null>(null); // To handle errors
+  const [AISpeaking, setAISpeaking] = useState<boolean>(false);
+
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  };
+  
+
+  const synthesizeSpeech = async (inputText: string) => {
+    const apiUrl = 'https://viettelai.vn/tts/speech_synthesis';
+    const apiToken = '6bb82a21f1f26e3c024dc68e65c4f868'; // Thay bằng token thực của bạn
+  
+    const requestBody = {
+      text: inputText,
+      voice: 'hcm-diemmy',
+      speed: 1.0,
+      tts_return_option: 3, // 3: mp3
+      token: apiToken,
+      without_filter: false,
+    };
+  
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Accept': '*/*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      // Nhận phản hồi dưới dạng ArrayBuffer
+      const arrayBuffer = await response.arrayBuffer();
+  
+      // Chuyển ArrayBuffer thành base64
+      const base64String = arrayBufferToBase64(arrayBuffer);
+  
+      // Định nghĩa đường dẫn lưu tệp âm thanh
+      const fileUri = FileSystem.cacheDirectory + 'tts_audio.mp3';
+  
+      // Lưu tệp âm thanh vào bộ nhớ cục bộ
+      await FileSystem.writeAsStringAsync(fileUri, base64String, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+  
+      // Phát tệp âm thanh đã lưu
+      playAudio(fileUri);
+    } catch (error) {
+      console.error('Error calling TTS API:', error);
+      Alert.alert('Error', 'Failed to synthesize speech');
+    }
+  };
+  
+
+  const playAudio = async (uri: string) => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri },
+        { shouldPlay: true, volume: 1.0 }
+      );
+
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync(); // Giải phóng tài nguyên sau khi phát xong
+          setAISpeaking(false);
+        }
+      });
+      setAISpeaking(true);
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      Alert.alert("Error", "Could not play the audio");
+    }
+  };
 
   const handleSend = async (messageText: string) => {
     if (!patient_id) {
@@ -58,7 +143,7 @@ const ChatbotScreen: React.FC = () => {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            query: messageText,
+            query: messageText || "Hello",
           }),
         }
       );
@@ -72,6 +157,8 @@ const ChatbotScreen: React.FC = () => {
         };
         // Add bot's message to the chat
         setMessages((prevMessages) => [...prevMessages, botMessage]);
+        setLoading(false); // End loading
+        synthesizeSpeech(data.response);
       } else {
         const errorData = await response.json();
         console.error("Chatbot response failed:", errorData);
@@ -100,18 +187,18 @@ const ChatbotScreen: React.FC = () => {
     setLoading(true); // Start loading
     try {
       const formData = new FormData();
-      formData.append('file', {
+      formData.append("file", {
         uri: audioUri,
-        name: 'voice_message.m4a',
-        type: 'audio/m4a',
+        name: "voice_message.m4a",
+        type: "audio/m4a",
       } as any);
 
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_CHATBOT_URL}/speech-to-text`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
           body: formData,
@@ -120,7 +207,7 @@ const ChatbotScreen: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        await handleSend(data.text)
+        await handleSend(data.text);
       } else {
         const errorData = await response.json();
         console.error("Chatbot audio response failed:", errorData);
@@ -145,16 +232,23 @@ const ChatbotScreen: React.FC = () => {
       <HeaderChatbot />
       {/* <View className="border-b border-gray-300 w-auto"></View> */}
       {/* <GestureHandlerRootView style={{ flex: 1 }}> */}
-        {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? -60 : 0}
-          >
-            <MessageList messages={messages} />
-            <InputSection onSend={handleSend} onSendAudio={handleSendAudio} />
-          </KeyboardAvoidingView>
-        {/* </TouchableWithoutFeedback> */}
+      {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? -60 : 0}
+      >
+        <MessageList messages={messages} />
+        <View className="flex-row items-center justify-center mb-6">
+          <InputSection
+            onSend={handleSend}
+            onSendAudio={handleSendAudio}
+            AIResponse={!loading}
+            AISpeaking={AISpeaking}
+          />
+        </View>
+      </KeyboardAvoidingView>
+      {/* </TouchableWithoutFeedback> */}
       {/* </GestureHandlerRootView> */}
     </SafeAreaView>
   );

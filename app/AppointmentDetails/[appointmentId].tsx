@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient"; // Nếu sử dụng Expo
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import RecentReportsView from "@/components/RecentReportsView";
+import HealthReportDetail, { fakeHealthReport } from "@/components/HealthReport";
 
 enum APPOINTMENT_STATUS {
   SCHEDULED = "Scheduled",
@@ -79,9 +80,10 @@ const AppointmentDetails: React.FC = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-sky-50">
+    <SafeAreaView className="bg-white">
       <ScrollView
        showsVerticalScrollIndicator={false}
+       className="w-full"
       >
         {/* Header */}
         <View className="flex-row items-center">
@@ -103,7 +105,7 @@ const AppointmentDetails: React.FC = () => {
 
         {/* Card thông tin */}
         <View
-          className="mt-6 mx-6 p-6 bg-white rounded-2xl shadow-lg border-l-4"
+          className="mt-6 p-6 bg-white w-full"
           style={{ borderColor: statusColor }}
         >
           {/* Trạng thái */}
@@ -167,7 +169,7 @@ const AppointmentDetails: React.FC = () => {
         </View>
 
         {/* Card ghi chú hoặc dặn dò */}
-        <View className="mt-6 mx-6 mb-6 p-5 bg-blue-100 rounded-2xl shadow-inner flex-row">
+        {/* <View className="mt-6 mx-6 mb-6 p-5 bg-blue-100 rounded-2xl shadow-inner flex-row">
           <Icon
             name="information-circle-outline"
             size={24}
@@ -183,8 +185,9 @@ const AppointmentDetails: React.FC = () => {
               phút để làm thủ tục.{"\n"}- Mang theo hồ sơ bệnh án nếu có.
             </Text>
           </View>
-        </View>
+        </View> */}
         {/* <RecentReportsView /> */}
+        <HealthReportDetail report={fakeHealthReport} />
       </ScrollView>
     </SafeAreaView>
   );

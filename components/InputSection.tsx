@@ -1,32 +1,40 @@
 // components/InputSection.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   View,
   TextInput,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+} from "react-native";
+import { Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
+import LottieView from "lottie-react-native";
+import { scale, verticalScale } from "react-native-size-matters";
 
 interface InputSectionProps {
   onSend: (message: string) => void;
   onSendAudio: (audioUri: string) => void; // Thêm prop để gửi audio
+  AIResponse: boolean;
+  AISpeaking: boolean;
 }
 
-const InputSection: React.FC<InputSectionProps> = ({ onSend, onSendAudio }) => {
+const InputSection: React.FC<InputSectionProps> = ({
+  onSend,
+  onSendAudio,
+  AIResponse,
+  AISpeaking,
+}) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [inputHeight, setInputHeight] = useState<number>(48); // Chiều cao mặc định
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const handleSend = () => {
     if (message.trim()) {
       onSend(message);
-      setMessage('');
+      setMessage("");
       setInputHeight(48); // Reset chiều cao sau khi gửi
     }
   };
@@ -34,7 +42,8 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend, onSendAudio }) => {
   const handleContentSizeChange = (event: any) => {
     const { height } = event.nativeEvent.contentSize;
     const maxHeight = 120; // Giới hạn chiều cao tối đa
-    if (height + 16 < maxHeight) { // Thêm 16 để tính padding
+    if (height + 16 < maxHeight) {
+      // Thêm 16 để tính padding
       setInputHeight(height + 16);
     } else {
       setInputHeight(maxHeight);
@@ -45,8 +54,8 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend, onSendAudio }) => {
     try {
       setIsRecording(true);
       const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Cannot access microphone.');
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Cannot access microphone.");
         setIsRecording(false);
         return;
       }
@@ -57,12 +66,12 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend, onSendAudio }) => {
       });
 
       const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HighQuality,
+        Audio.RecordingOptionsPresets.HighQuality
       );
       setRecording(recording);
     } catch (error) {
-      console.error('Failed to start recording', error);
-      Alert.alert('Error', 'Failed to start recording.');
+      console.error("Failed to start recording", error);
+      Alert.alert("Error", "Failed to start recording.");
       setIsRecording(false);
     }
   };
@@ -79,63 +88,122 @@ const InputSection: React.FC<InputSectionProps> = ({ onSend, onSendAudio }) => {
       }
       setRecording(null);
     } catch (error) {
-      console.error('Failed to stop recording', error);
-      Alert.alert('Error', 'Failed to stop recording.');
+      console.error("Failed to stop recording", error);
+      Alert.alert("Error", "Failed to stop recording.");
       setIsRecording(false);
     }
   };
 
+  const lottieRef = useRef<LottieView>(null);
+
   return (
-    <View
-      className="flex-row mx-auto w-11/12 mb-20 bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center h-fit"
-    >
-      {/* Biểu tượng Microphone */}
-      <TouchableOpacity
-        className="mr-2"
-        onPressIn={handleMicPressIn}
-        onPressOut={handleMicPressOut}
-        disabled={isRecording}
-      >
-        {isRecording ? (
-          <Feather name="mic" size={24} color="#1E90FF" />
-        ) : (
-          <Feather name="mic" size={24} color="gray" />
-        )}
-      </TouchableOpacity>
-
-      {/* Ô Input */}
-      <TextInput
-        className="w-10/12 pt-0 font-pmedium"
-        placeholder="Type a message..."
-        placeholderTextColor="gray"
-        value={message}
-        onChangeText={setMessage}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        multiline
-        maxLength={1000}
-        numberOfLines={4}
-        onContentSizeChange={handleContentSizeChange}
-        textAlignVertical={'center'}
-      />
-
-      {/* Biểu tượng Gửi Tin Nhắn */}
-      <TouchableOpacity
-        onPress={handleSend}
-        className="ml-2"
-        disabled={!message.trim()}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color="#1E90FF" />
-        ) : (
-          <Ionicons
-            name="send"
-            size={24}
-            color={message.trim() ? '#1E90FF' : 'gray'}
+    // <View
+    //   className="flex-row mx-auto w-11/12 mb-20 bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center h-fit"
+    // >
+    //   {/* Biểu tượng Microphone */}
+    <View style={{ marginBottom: 40, zIndex: 1 }}>
+      {!AIResponse ? (
+        <TouchableOpacity>
+          <LottieView
+            source={require("@/assets/animations/loading.json")}
+            autoPlay
+            loop
+            speed={1.3}
+            style={{ width: scale(270), height: scale(270) }}
           />
-        )}
-      </TouchableOpacity>
+        </TouchableOpacity>
+      ) : (
+        <>
+          {!isRecording ? (
+            <>
+              {AISpeaking ? (
+                <View>
+                  <LottieView
+                    ref={lottieRef}
+                    source={require("@/assets/animations/ai-speaking.json")}
+                    autoPlay={false}
+                    loop={false}
+                    style={{ width: scale(250), height: scale(250) }}
+                  />
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={{
+                    width: scale(60),
+                    height: scale(60),
+                    backgroundColor: "#fff",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: scale(55), // borderRadius = half of width/height để tạo hình tròn
+                    borderWidth: 2, // Thêm độ dày cho viền
+                    borderColor: "#2F51D7", // Chọn màu cho viền
+                    // Thêm shadow nếu muốn nổi bật hơn (tùy chọn)
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 2,
+                    elevation: 5, // Dành cho Android để tạo shadow
+                    marginBottom: verticalScale(5),
+                  }}
+                  onPress={handleMicPressIn}
+                >
+                  <FontAwesome
+                    name="microphone"
+                    size={scale(30)}
+                    color="#2F51D7"
+                  />
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
+            <TouchableOpacity onPress={handleMicPressOut}>
+              <LottieView
+                source={require("@/assets/animations/animation.json")}
+                autoPlay
+                loop
+                speed={1.3}
+                style={{ width: scale(250), height: scale(250) }}
+              />
+            </TouchableOpacity>
+          )}
+        </>
+      )}
     </View>
+
+    //   {/* Ô Input */}
+    // {/* <TextInput
+    //   className="w-10/12 pt-0 font-pmedium"
+    //   placeholder="Type a message..."
+    //   placeholderTextColor="gray"
+    //   value={message}
+    //   onChangeText={setMessage}
+    //   onFocus={() => setIsFocused(true)}
+    //   onBlur={() => setIsFocused(false)}
+    //   multiline
+    //   maxLength={1000}
+    //   numberOfLines={4}
+    //   onContentSizeChange={handleContentSizeChange}
+    //   textAlignVertical={'center'}
+    // /> */}
+
+    //   {/* Biểu tượng Gửi Tin Nhắn */}
+    //   {/* <TouchableOpacity
+    //     onPress={handleSend}
+    //     className="ml-2"
+    //     disabled={!message.trim()}
+    //   >
+    //     {loading ? (
+    //       <ActivityIndicator size="small" color="#1E90FF" />
+    //     ) : (
+    //       <Ionicons
+    //         name="send"
+    //         size={24}
+    //         color={message.trim() ? '#1E90FF' : 'gray'}
+    //       />
+    //     )}
+    //   </TouchableOpacity> */}
+    // </View>
   );
 };
 
