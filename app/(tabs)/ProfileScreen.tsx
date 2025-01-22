@@ -61,32 +61,36 @@ const convertDate = (date: string) => {
 };
 
 const renderAppointment = ({ item }: { item: Appointment }) => (
-  <Animated.View
-    // entering={FadeIn.duration(800)}
-    className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4"
-  >
-    <Text className="text-blue-700 font-psemibold">
-      Bác sĩ: {item.doctor_fullname}
-    </Text>
-    <Text className="text-blue-700 font-psemibold">
-      Chuyên Khoa: {item.doctor_specialty}
-    </Text>
-    <Text className="text-blue-700 font-psemibold">
-      Ngày: {convertDate(item.appointment_day)}
-    </Text>
-    <Text className="text-blue-700 font-psemibold">
-      Giờ: {convertShiftToTime(item.appointment_shift)}
-    </Text>
-    <Text
-      className={`text-sm font-pmedium ${
-        item.status === APPOINTMENT_STATUS.SCHEDULED
-          ? "text-green-500"
-          : "text-yellow-500"
-      }`}
+  <TouchableOpacity onPress={() => {
+    router.push(`/AppointmentDetails/${item.appointment_id}`);
+  }}>
+    <Animated.View
+      // entering={FadeIn.duration(800)}
+      className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4"
     >
-      {item.status}
-    </Text>
-  </Animated.View>
+      <Text className="text-blue-700 font-psemibold">
+        Bác sĩ: {item.doctor_fullname}
+      </Text>
+      <Text className="text-blue-700 font-psemibold">
+        Chuyên Khoa: {item.doctor_specialty}
+      </Text>
+      <Text className="text-blue-700 font-psemibold">
+        Ngày: {convertDate(item.appointment_day)}
+      </Text>
+      <Text className="text-blue-700 font-psemibold">
+        Giờ: {convertShiftToTime(item.appointment_shift)}
+      </Text>
+      <Text
+        className={`text-sm font-pmedium ${
+          item.status === APPOINTMENT_STATUS.SCHEDULED
+            ? "text-green-500"
+            : "text-yellow-500"
+        }`}
+      >
+        {item.status}
+      </Text>
+    </Animated.View>
+  </TouchableOpacity>
 );
 
 const ProfileScreen = () => {
@@ -261,7 +265,6 @@ const ProfileScreen = () => {
                   </View>
                 </LinearGradient>
                 <View className="h-20" />
-
               </TouchableOpacity>
             </View>
           }
@@ -269,7 +272,6 @@ const ProfileScreen = () => {
       )}
 
       {/* Logout Button */}
-
     </View>
   );
 };

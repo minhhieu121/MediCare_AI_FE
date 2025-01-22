@@ -72,6 +72,10 @@ export default function RootLayout() {
               name="SpecialtyDetails/[specialtyId]"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="AppointmentDetails/[appointmentId]"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="auto" />
