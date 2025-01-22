@@ -67,40 +67,66 @@ const SpecialtyDetails = () => {
   return (
     <SafeAreaView style={{ flex: 1 }} className="bg-white">
       <ScrollView className="bg-white flex-1">
-        <View className="flex-row items-center mb-2">
-          <TouchableOpacity onPress={() => router.back()} className="p-2">
-            <Icon name="arrow-back-outline" size={24} color="#000000" />
-          </TouchableOpacity>
-          <Text className="text-2xl font-psemibold text-black ml-4">Back</Text>
-        </View>
+        <View className="bg-white pb-6">
+          <View className="flex-row items-center mb-2">
+            <TouchableOpacity onPress={() => router.back()} className="p-2">
+              <Icon name="arrow-back-outline" size={24} color="#000000" />
+            </TouchableOpacity>
+            <Text className="text-2xl font-psemibold text-black ml-4">
+              Back
+            </Text>
+          </View>
 
-        {/* Search Bar */}
-        <View className="px-4 py-2 shadow">
-          <View className="flex-row mx-auto w-[95%] bg-[#f4f4f4] border border-gray-200 rounded-full px-4 py-4 items-center h-fit">
-            <Icon name="search-outline" size={20} color="#666" />
-            <TextInput
-              placeholder="Search doctors..."
-              value={searchQuery}
-              onChangeText={handleSearch}
-              className="ml-2 flex-1 text-gray-700 font-pmedium"
-              returnKeyType="search"
-              onSubmitEditing={Keyboard.dismiss}
+          {/* Search Bar */}
+          <View className="px-4 py-2 ">
+            <View className="flex-row mx-auto w-[95%] bg-[#f4f4f4] border border-gray-300 rounded-full px-4 py-4 items-center h-fit">
+              <Icon name="search-outline" size={20} color="#666" />
+              <TextInput
+                placeholder="Search doctors..."
+                value={searchQuery}
+                onChangeText={handleSearch}
+                className="ml-2 flex-1 text-gray-700 font-pmedium"
+                returnKeyType="search"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+              {searchQuery !== "" && (
+                <TouchableOpacity onPress={() => handleSearch("")}>
+                  <Icon name="close-circle" size={20} color="#666" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          <View className="mx-5 mt-4 p-4 bg-sky-100 rounded-2xl flex-row items-center justify-between">
+            {/* Text Content */}
+            <View>
+              <Text className="text-2xl font-psemibold text-gray-800">
+                Consultancy For Lungs
+              </Text>
+              <Text className="text-gray-500 text-md font-pregular mt-1">
+                Trusted doctors Specialist
+              </Text>
+              <Text className="text-gray-500 text-md font-pregular">
+                In pulmonologist
+              </Text>
+            </View>
+
+            {/* Placeholder for the image */}
+            <Image
+              source={{ uri: "https://via.placeholder.com/80" }} // Replace with actual image link
+              className="w-24 h-24"
+              resizeMode="contain"
             />
-            {searchQuery !== "" && (
-              <TouchableOpacity onPress={() => handleSearch("")}>
-                <Icon name="close-circle" size={20} color="#666" />
-              </TouchableOpacity>
-            )}
           </View>
         </View>
+        <View className="bg-slate-100 py-1"></View>
 
         {/* Doctors List Section */}
         <View className="mt-6 mx-5">
           <View className="flex-row items-center justify-between">
-            <Text className="text-xl font-bold text-gray-900">
+            <Text className="text-xl font-psemibold text-gray-800">
               Top Doctors From Below
             </Text>
-            <Text className="text-blue-500 font-semibold">View all</Text>
+            <Text className="text-sm font-pmedium text-blue-500">View all</Text>
           </View>
 
           <View className="flex-row flex-wrap justify-between mt-4">
@@ -108,28 +134,29 @@ const SpecialtyDetails = () => {
               filteredDoctors.map((doctor) => (
                 <View
                   key={doctor.id}
-                  className={`w-[48%] p-4 ${doctor.bgColor} rounded-xl mb-4 shadow-md`}
+                  className={`w-[48%] p-4 py-8 ${doctor.bgColor} rounded-xl mb-4`}
                 >
-                  <View className="items-center">
+                  <View className="relative items-center flex-col mb-6">
                     <Image
-                      source={{ uri: doctor.image }}
-                      className="w-16 h-16 rounded-full"
+                      source={{ uri: "https://picsum.photos/200/200" }}
+                      className="w-24 h-24 rounded-full"
+                      resizeMode="cover"
                     />
-                    <View className="flex-row items-center mt-2">
+                    <View className="absolute top-[5.2rem] bg-white rounded-full px-3 py-1 flex-row items-center">
                       <Ionicons name="star" size={16} color="gold" />
-                      <Text className="text-gray-800 ml-1 font-semibold">
+                      <Text className="text-black font-psemibold ml-1">
                         {doctor.rating}
                       </Text>
                     </View>
                   </View>
-                  <Text className="text-lg font-bold text-center text-gray-900 mt-2">
+                  <Text className="text-lg font-psemibold text-center text-gray-900 mt-2">
                     {doctor.name}
                   </Text>
-                  <Text className="text-gray-500 text-center">
+                  <Text className="text-gray-500 font-pregular text-center">
                     {doctor.specialty}
                   </Text>
-                  <TouchableOpacity className="bg-indigo-900 py-2 rounded-full mt-4">
-                    <Text className="text-white text-center font-bold">
+                  <TouchableOpacity className="bg-indigo-900 py-2 rounded-md mt-4">
+                    <Text className="text-white text-center font-psemibold">
                       Book Consult
                     </Text>
                   </TouchableOpacity>

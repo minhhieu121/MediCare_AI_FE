@@ -176,7 +176,7 @@ const interpolatePoints = (
             interpolatedCoordinates.push(start);
         
             // Thêm 10 điểm nội suy
-            const interpolatedPoints = interpolatePoints(start, end, 10);
+            const interpolatedPoints = interpolatePoints(start, end, 30);
             interpolatedCoordinates.push(...interpolatedPoints);
           }
         
