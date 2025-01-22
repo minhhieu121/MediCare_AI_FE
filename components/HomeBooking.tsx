@@ -41,8 +41,8 @@ export default function HomeBooking() {
               <View className="w-14 h-14 rounded-full bg-white border border-pink-200 items-center justify-center">
                 <Kidneys width={32} height={32} color="#2F51D7" />
               </View>
-              <Text className="text-xs mt-1 font-pregular text-gray-700">
-                Kidneys
+              <Text className="text-xs mt-1 font-semibold text-gray-700">
+                Thận
               </Text>
             </TouchableOpacity>
 
@@ -52,7 +52,7 @@ export default function HomeBooking() {
                 <Eye width={32} height={32} color="#2F51D7" />
               </View>
               <Text className="text-xs mt-1 font-pregular text-gray-700">
-                Eye
+                Mắt
               </Text>
             </TouchableOpacity>
 
@@ -62,7 +62,7 @@ export default function HomeBooking() {
                 <ChildCognition width={32} height={32} color="#2F51D7" />
               </View>
               <Text className="text-xs mt-1 font-pregular text-gray-700">
-                Brain
+                Não bộ
               </Text>
             </TouchableOpacity>
 
@@ -72,7 +72,7 @@ export default function HomeBooking() {
                 <Lungs width={32} height={32} color="#2F51D7" />
               </View>
               <Text className="text-xs font-pregular mt-1 text-gray-700">
-                Lungs
+                Phổi
               </Text>
             </TouchableOpacity>
 
@@ -86,7 +86,7 @@ export default function HomeBooking() {
                 />
               </View>
               <Text className="text-xs font-pregular mt-1 text-gray-700">
-                More
+                Khác
               </Text>
             </TouchableOpacity>
           </View>
