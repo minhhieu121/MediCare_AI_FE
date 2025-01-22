@@ -215,43 +215,43 @@ import { router } from "expo-router";
 const healthData = [
   {
     icon: <Kidneys width={40} height={40} color="#2F51D7" />,
-    label: "Kidneys",
+    label: "Thận",
   },
-  { icon: <Eye width={40} height={40} color="#2F51D7" />, label: "Eye" },
+  { icon: <Eye width={40} height={40} color="#2F51D7" />, label: "Mắt" },
   {
     icon: <ChildCognition width={40} height={40} color="#2F51D7" />,
-    label: "Brain",
+    label: "Não bộ",
   },
-  { icon: <Liver width={40} height={40} color={"#2F51D7"} />, label: "Liver" }, // Placeholder icon
-  { icon: <Lungs width={40} height={40} color="#2F51D7" />, label: "Lungs" },
+  { icon: <Liver width={40} height={40} color={"#2F51D7"} />, label: "Gan" }, // Placeholder icon
+  { icon: <Lungs width={40} height={40} color="#2F51D7" />, label: "Phổi" },
   {
     icon: <Cardiogram width={40} height={40} color={"#2F51D7"} />,
-    label: "Heart",
+    label: "Tim mạch",
   },
   {
     icon: <Colon width={40} height={40} color={"#2F51D7"} />,
-    label: "Intestine",
+    label: "Hệ tiêu hóa",
   }, // Placeholder icon
   {
     icon: <Bladder width={40} height={40} color={"#2F51D7"} />,
-    label: "Bladder",
+    label: "Bàng quang",
   },
 ];
 
 const surgeries = [
   {
-    discount: "60% off",
-    title: "Gall Bladder Surgery",
-    description: "Removal of the gallbladder due to the deposit of stone",
+    discount: "Giảm 60%",
+    title: "Phẫu thuật túi mật",
+    description: "Loại bỏ túi mật do sỏi tích tụ",
     oldPrice: "$1469",
     newPrice: "$947",
     bgColor: "bg-pink-100",
     textColor: "bg-pink-500",
   },
   {
-    discount: "34% off",
-    title: "Fat Lipoma Surgery",
-    description: "Fat-based tissue lump that grows just beneath",
+    discount: "Giảm 34%",
+    title: "Phẫu thuật u mỡ",
+    description: "Khối u mỡ phát triển ngay dưới da",
     oldPrice: "$169",
     newPrice: "$1476",
     bgColor: "bg-green-100",
@@ -261,16 +261,16 @@ const surgeries = [
 
 const orthopedicSpecials = [
   {
-    title: "Shin Joint Pain",
-    icon: "walk-outline", // Placeholder icon
+    title: "Đau khớp cẳng chân",
+    icon: "walk-outline", // Biểu tượng tạm thời
   },
   {
-    title: "Bone Fracture",
-    icon: "body-outline", // Placeholder icon
+    title: "Gãy xương",
+    icon: "body-outline", // Biểu tượng tạm thời
   },
   {
-    title: "Wrist Fracture",
-    icon: "hand-left-outline", // Placeholder icon
+    title: "Gãy xương cổ tay",
+    icon: "hand-left-outline", // Biểu tượng tạm thời
   },
 ];
 
@@ -280,7 +280,7 @@ const AppointmentScreen = () => {
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-3">
         <Ionicons name="arrow-back" size={24} color="white" />
-        <Text className="text-black text-lg font-psemibold">All Symptoms</Text>
+        <Text className="text-black text-lg font-psemibold">Triệu chứng</Text>
         <Ionicons name="search-outline" size={24} color="white" />
       </View>
       <View className="bg-slate-100 py-1"></View>
@@ -290,10 +290,10 @@ const AppointmentScreen = () => {
         <View className="py-3 px-5">
           <View className="bg-pink-50 rounded-xl p-5">
             <Text className="text-xl font-psemibold text-gray-800 mb-1">
-              Book appointment an expert surgeon
+            Đặt lịch hẹn với bác sĩ chuyên khoa
             </Text>
             <Text className="text-gray-500 text-sm mb-3 font-pmedium">
-              Treat common symptoms with specialist
+            Điều trị các triệu chứng phổ biến với bác sĩ chuyên khoa
             </Text>
             <View className="flex-row flex-wrap justify-between ">
               {healthData.map((item, index) => (
@@ -306,7 +306,7 @@ const AppointmentScreen = () => {
                   >
                     {item.icon}
                   </TouchableOpacity>
-                  <Text className="text-sm font-pmedium text-gray-700 mt-1 capitalize">
+                  <Text className="text-sm font-psemibold text-gray-700 mt-1 capitalize">
                     {item.label}
                   </Text>
                 </View>
@@ -319,7 +319,7 @@ const AppointmentScreen = () => {
         {/* Surgeries We Cover Section */}
         <View className="py-3 px-5">
           <Text className="text-xl font-psemibold text-gray-800 mb-3">
-            Surgeries we cover
+          Các ca phẫu thuật chúng tôi thực hiện
           </Text>
         </View>
         <ScrollView
@@ -358,7 +358,7 @@ const AppointmentScreen = () => {
         <View className="px-6 py-5 bg-white">
           {/* Tiêu đề */}
           <Text className="text-xl font-psemibold text-gray-800 mb-4">
-            Orthopedist Specials
+           Chuyên khoa chỉnh hình
           </Text>
 
           {/* Danh sách mục */}

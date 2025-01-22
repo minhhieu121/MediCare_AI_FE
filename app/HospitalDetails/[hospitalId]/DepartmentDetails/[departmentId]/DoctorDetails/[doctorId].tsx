@@ -610,8 +610,7 @@
 // };
 
 // export default DoctorDetails;
-
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -621,40 +620,149 @@ import {
   TextInput,
   Animated,
   Easing,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Icon from "react-native-vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import SlideToBookButton from "@/components/SlideToBookButton";
-import { className } from "postcss-selector-parser";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+
+interface Doctor {
+  user_id: number;
+  username: string;
+  email: string;
+  fullname: string;
+  doctor_specialty: string;
+  doctor_experience: number;
+  profile_image: string;
+  doctor_rating: number;
+  hospital_name: string;
+}
+
+interface Appointment {
+  appointment_shift: number;
+  // Add other relevant fields if necessary
+}
 
 const DoctorDetails = () => {
+  const { doctorId } = useLocalSearchParams();
+  const { token } = useAuth();
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [timeSlots, setTimeSlots] = useState<
+    { shift: number; time: string; available: boolean }[]
+  >([]);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [reason, setReason] = useState("");
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const timeSlots = [
-    { time: "4:30 PM", available: true },
-    { time: "5:00 PM", available: true },
-    { time: "5:30 PM", available: true },
-    { time: "6:00 PM", available: false },
-    { time: "7:30 PM", available: true },
-    { time: "9:30 PM", available: false },
-  ];
 
+  // Function to fetch doctor details
+  const fetchDoctorDetails = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/api/doctors/${doctorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch doctor details");
+      }
+      const data = await response.json();
+      setDoctor(data);
+    } catch (error) {
+      console.error("Error fetching doctor:", error);
+    }
+  };
+
+  // Function to format shift number to time range
+  const formatShift = (shift: number): string => {
+    const baseHour = 7;
+    const hour = Math.floor(shift / 2) + baseHour;
+    const minutes = shift % 2 === 0 ? "00" : "30";
+    
+    return hour <= 9 ? `0${hour}:${minutes}` : `${hour}:${minutes}`;
+  };
+  
+
+  // Function to fetch available time slots
+  const fetchAvailableTimeSlots = async (doctorId: string, date: Date) => {
+    try {
+      const formattedDate = date.toISOString().split("T")[0];
+      console.log('Fetching slots for:', { doctorId, formattedDate });
+  
+      const url = `${process.env.EXPO_PUBLIC_API_URL}/api/appointments?user_id=${doctorId}&start_date=${formattedDate}&end_date=${formattedDate}`;
+      console.log('Request URL:', url);
+  
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      console.log('Response status:', response.status);
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch appointments: ${response.status} ${errorText}`);
+      }
+  
+      const bookedAppointments: Appointment[] = await response.json();
+      console.log('Booked appointments:', bookedAppointments);
+  
+      const bookedShifts = new Set(bookedAppointments.map((app) => app.appointment_shift));
+      console.log('Booked shifts:', Array.from(bookedShifts));
+  
+      // Generate all possible shifts (0-23 representing shifts from 7:00 AM to 7:00 PM)
+      const allTimeSlots = Array.from({ length: 20 }, (_, i) => ({
+        shift: i,
+        time: formatShift(i),
+        available: !bookedShifts.has(i)
+      }));
+      
+  
+      console.log('Final time slots:', allTimeSlots);
+      setTimeSlots(allTimeSlots);
+    } catch (error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+      });
+      throw error; // Re-throw to be handled by caller
+    }
+  };
+  
+  // Usage in useEffect with error handling
+  useEffect(() => {
+    const loadTimeSlots = async () => {
+      try {
+        await fetchAvailableTimeSlots(doctorId, new Date());
+      } catch (error) {
+        console.error('Failed to load time slots:', error);
+        // Handle error (e.g., show error message to user)
+      }
+    };
+    
+    loadTimeSlots();
+  }, [doctorId]);
+
+  // Floating animation
   const startFloatingAnimation = () => {
     Animated.timing(animatedValue, {
-      toValue: 1, // Moves to the top position
-      duration: 800, // Duration in milliseconds
-      easing: Easing.out(Easing.ease), // Smooth easing effect
-      useNativeDriver: true, // Enable native driver for performance
+      toValue: 1,
+      duration: 800,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
     }).start();
   };
 
   const floatingPosition = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [600, 0], // Start from bottom (off-screen), move to top
+    outputRange: [600, 0],
   });
 
   const handleBookingConfirmation = () => {
@@ -662,35 +770,53 @@ const DoctorDetails = () => {
     startFloatingAnimation();
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#2F51D7" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-[#f4f3f9]">
       <ScrollView className="flex-1 py-6">
-        <View className="flex-row items-center mb-2">
+        {/* Header */}
+        <View className="flex-row items-center mb-2 px-5">
           <TouchableOpacity onPress={() => router.back()} className="p-2">
-            <Icon name="arrow-back-outline" size={24} color="#000000" />
+            <Ionicons name="arrow-back-outline" size={24} color="#000000" />
           </TouchableOpacity>
           <Text className="text-2xl font-psemibold text-black ml-4">Back</Text>
         </View>
+
         {/* Doctor Info Section */}
         <View className="px-5">
           <View className="bg-white p-5 rounded-2xl w-full">
-            {/* Doctor Profile Section */}
             <View className="flex-row items-center">
-              <Image
-                source={{ uri: "https://picsum.photos/200/200" }} // Thay ảnh thực tế vào đây
-                className="w-24 h-24 rounded-full"
-              />
+              {doctor?.profile_image ? (
+                <Image
+                  source={{ uri: doctor.profile_image }}
+                  className="w-24 h-24 rounded-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <Image
+                  source={require("@/assets/icons/profile.png")}
+                  className="w-24 h-24 rounded-full"
+                  resizeMode="cover"
+                />
+              )}
               <View className="ml-4">
                 <Text className="text-xl font-psemibold text-gray-800 pb-2">
-                  Dr. Wesley Cain
+                  Dr. {doctor?.fullname}
                 </Text>
                 <Text className="text-gray-500 text-lg font-pregular">
-                  Pulmonologist
+                  {doctor?.doctor_specialty}
                 </Text>
                 <View className="flex-row items-center mt-1">
                   <Ionicons name="business-outline" size={16} color="#6B7280" />
                   <Text className="text-gray-400 ml-1 font-pregular text-md">
-                    St. Memorial Hospital
+                    {doctor?.hospital_name || "Hospital"}
                   </Text>
                 </View>
               </View>
@@ -698,32 +824,35 @@ const DoctorDetails = () => {
           </View>
         </View>
 
-        {/* Doctor Statistics Section */}
-        <View className="flex-row px-5 justify-between mt-2 w-full">
-          {/* Rating */}
-          <View className="flex-row justify-center bg-white rounded-xl py-3 px-6 items-center">
+        {/* Statistics Section */}
+        <View className="flex-row px-5 justify-between mt-2 w-full gap-2">
+          <View className="flex-1 bg-white rounded-xl py-3 px-4 items-center">
             <Ionicons name="star" size={24} color="gold" />
-            <View className="flex-col items-center ml-2">
-              <Text className="text-xl font-bold text-gray-900">4.5</Text>
-              <Text className="text-gray-500 text-sm">Rating</Text>
+            <View className="items-center">
+              <Text className="text-lg font-bold text-gray-900 text-center">
+                {doctor?.doctor_rating || "4.5"}
+              </Text>
+              <Text className="text-gray-500 text-xs text-center">Đánh giá</Text>
             </View>
           </View>
 
-          {/* Experience */}
-          <View className="flex-row justify-center bg-white rounded-xl py-3 px-6 items-center">
+          <View className="flex-1 bg-white rounded-xl py-3 px-4 items-center">
             <Ionicons name="medkit-outline" size={24} color="#3B82F6" />
-            <View className="flex-col items-center ml-2">
-              <Text className="text-xl font-bold text-gray-900">5 Year</Text>
-              <Text className="text-gray-500 text-sm">Experience</Text>
+            <View className="items-center">
+              <Text className="text-lg font-bold text-gray-900 text-center">
+                {doctor?.doctor_experience || "5"} Năm
+              </Text>
+              <Text className="text-gray-500 text-xs text-center">Kinh nghiệm</Text>
             </View>
           </View>
 
-          {/* Patients */}
-          <View className="flex-row justify-center bg-white rounded-xl py-3 px-6 items-center">
+          <View className="flex-1 bg-white rounded-xl py-3 px-4 items-center">
             <Ionicons name="bed-outline" size={24} color="#EF4444" />
-            <View className="flex-col items-center ml-2">
-              <Text className="text-xl font-bold text-gray-900">100</Text>
-              <Text className="text-gray-500 text-sm">Patients</Text>
+            <View className="items-center">
+              <Text className="text-lg font-bold text-gray-900 text-center">
+                100+
+              </Text>
+              <Text className="text-gray-500 text-xs text-center">Bệnh nhân</Text>
             </View>
           </View>
         </View>
@@ -734,28 +863,27 @@ const DoctorDetails = () => {
             <View className="flex-row justify-between items-center">
               <View className="flex-row items-center">
                 <Ionicons name="calendar-outline" size={24} color="#6B7280" />
-
                 <Text className="ml-2 text-lg font-psemibold text-gray-800">
-                  Today Availability
+                  Lịch trống hôm nay
                 </Text>
               </View>
               <View className="bg-pink-200 px-3 py-2 rounded-full">
                 <Text className="text-pink-600 font-pmedium text-sm">
-                  4 Slots
+                  {timeSlots.filter(slot => slot.available).length} Chỗ
                 </Text>
               </View>
             </View>
 
-            <View className="flex-row flex-wrap justify-between items-center mt-4 w-full">
+            <View className="flex-row flex-wrap justify-between item-center items-center mt-4 w-full">
               {timeSlots.map((slot, index) => (
                 <TouchableOpacity
                   key={index}
                   disabled={!slot.available}
                   onPress={() => setSelectedSlot(slot.time)}
-                  className={`px-7 py-4 rounded-lg m-1 ${
+                  className={`px-4 py-2 rounded-lg m-1 ${
                     slot.available
                       ? selectedSlot === slot.time
-                        ? "bg-[#2F51D7] text-white"
+                        ? "bg-[#2F51D7]"
                         : "bg-gray-100"
                       : "bg-gray-300"
                   }`}
@@ -774,53 +902,52 @@ const DoctorDetails = () => {
                 </TouchableOpacity>
               ))}
             </View>
-            {/* Notification for selected slot */}
-            {selectedSlot !== "" && (
-              <View className="mt-6 bg-white p-4 rounded-lg border-l-4 border-[#2F51D7]">
-                <Text className="text-[#2F51D7] font-psemibold">
-                  Cuộc hẹn sẽ diễn ra vào {selectedSlot}, kéo dài trong vòng 30
-                  phút.
-                </Text>
-                <Text className="text-gray-700 mt-2 font-pregular">
-                  Vui lòng điền các triệu chứng hoặc thông tin bệnh bạn đang gặp
-                  phải để bác sĩ có thể hỗ trợ tốt hơn.
-                </Text>
-              </View>
-            )}
 
-            {/* Input for Reason */}
             {selectedSlot !== "" && (
-              <View className="mt-4">
-                <Text className="text-gray-800 font-pmedium mb-2">
-                  Nhập lý do khám bệnh:
-                </Text>
-                <TextInput
-                  value={reason}
-                  onChangeText={setReason}
-                  placeholder="Ví dụ: Ho kéo dài, sốt nhẹ..."
-                  placeholderTextColor="#9CA3AF"
-                  multiline
-                  className="bg-white p-4 rounded-lg border border-gray-300 text-gray-900 font-pregular"
-                />
-              </View>
+              <>
+                <View className="mt-6 bg-white p-4 rounded-lg border-l-4 border-[#2F51D7]">
+                  <Text className="text-[#2F51D7] font-psemibold">
+                    Cuộc hẹn của bạn sẽ vào lúc {selectedSlot}, kéo dài 30 phút.
+                  </Text>
+                  <Text className="text-gray-700 mt-2 font-pregular">
+                    Vui lòng mô tả triệu chứng hoặc mối quan tâm của bạn để bác sĩ có thể chuẩn bị tốt hơn.
+                  </Text>
+                </View>
+
+                <View className="mt-4">
+                  <Text className="text-gray-800 font-pmedium mb-2">
+                    Lý do khám bệnh:
+                  </Text>
+                  <TextInput
+                    value={reason}
+                    onChangeText={setReason}
+                    placeholder="Ví dụ: Ho dai dẳng, sốt nhẹ..."
+                    placeholderTextColor="#9CA3AF"
+                    multiline
+                    className="bg-white p-4 rounded-lg border border-gray-300 text-gray-900 font-pregular"
+                  />
+                </View>
+              </>
             )}
           </View>
         </View>
 
         {/* Book Button */}
         {selectedSlot && reason && (
-          <View className="flex-1 items-center justify-center mt-6">
+          <View className="flex-1 items-center justify-center mt-6 mb-6">
             <TouchableOpacity
               onPress={handleBookingConfirmation}
-              className="bg-[#2F51D7] px-4 py-4 w-[80%] rounded-lg items-center "
+              className="bg-[#2F51D7] px-4 py-4 w-[80%] rounded-lg items-center"
             >
               <Text className="text-white text-lg font-psemibold">
-                Booking Consultation
+                Book Appointment
               </Text>
             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
+
+      {/* Confirmation Modal */}
       {isBookingConfirmed && (
         <Animated.View
           style={{
@@ -841,13 +968,10 @@ const DoctorDetails = () => {
           <View style={{ alignItems: "center" }}>
             <Ionicons name="checkmark-circle" size={64} color="#22C55E" />
             <Text style={{ fontSize: 24, fontWeight: "bold", color: "#333" }}>
-              Booking Confirmed
+              Xác nhận đặt lịch
             </Text>
-            <Text
-              style={{ color: "#6B7280", textAlign: "center", marginTop: 10 }}
-            >
-              Your booking is confirmed. Please find the details for the
-              appointment.
+            <Text style={{ color: "#6B7280", textAlign: "center", marginTop: 10 }}>
+              Cuộc hẹn của bạn với Dr. {doctor?.fullname} đã được xác nhận.
             </Text>
           </View>
 
@@ -860,13 +984,19 @@ const DoctorDetails = () => {
             }}
           >
             <Text style={{ fontWeight: "600", color: "#555" }}>
-              Date: Jan 29, 2023
+              Bác sĩ: Dr. {doctor?.fullname}
             </Text>
             <Text style={{ fontWeight: "600", color: "#555" }}>
-              Time: {selectedSlot}
+              Chuyên khoa: {doctor?.doctor_specialty}
             </Text>
             <Text style={{ fontWeight: "600", color: "#555" }}>
-              Location: Wallich St Singapore
+              Ngày: {new Date().toLocaleDateString()}
+            </Text>
+            <Text style={{ fontWeight: "600", color: "#555" }}>
+              Thời gian: {selectedSlot}
+            </Text>
+            <Text style={{ fontWeight: "600", color: "#555" }}>
+              Địa điểm: {doctor?.hospital_name}
             </Text>
           </View>
 
@@ -880,7 +1010,7 @@ const DoctorDetails = () => {
             onPress={() => setIsBookingConfirmed(false)}
           >
             <Text style={{ color: "white", textAlign: "center", fontSize: 18 }}>
-              Back To Home
+              Trở về màn hình chính
             </Text>
           </TouchableOpacity>
         </Animated.View>
