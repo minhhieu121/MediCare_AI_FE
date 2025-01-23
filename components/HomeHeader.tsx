@@ -9,7 +9,7 @@ export default function HomeHeader() {
         <Ionicons name="location-sharp" size={32} color="#1A8BFF" />
         <TouchableOpacity className="ml-2 flex-col space-x-1">
           <Text className="text-gray-500 text-sm font-pmedium">
-            Hi, Vu Xuan Vinh
+            Xin chào, Vũ Xuân Vinh
           </Text>
           <View className="flex-row items-center">
             <Text className="text-base text-primary font-psemibold">

@@ -130,7 +130,7 @@ const SpecialtyDetails = () => {
             <View className="flex-row mx-auto w-[95%] bg-[#f4f4f4] border border-gray-300 rounded-full px-4 py-2 items-center">
               <Icon name="search-outline" size={20} color="#666" />
               <TextInput
-                placeholder="Search doctors..."
+                placeholder="Tìm kiếm bác sĩ..."
                 value={searchQuery}
                 onChangeText={handleSearch}
                 className="ml-2 flex-1 text-gray-700 font-pmedium"
@@ -209,7 +209,7 @@ const SpecialtyDetails = () => {
                     <View className="absolute top-[5.2rem] bg-white rounded-full px-3 py-1 flex-row items-center">
                       <Ionicons name="star" size={16} color="gold" />
                       <Text className="text-black font-psemibold ml-1">
-                        {doctor.doctor_rating ?? "N/A"}
+                        {doctor.doctor_rating ?? "4.5"}
                       </Text>
                     </View>
                   </View>

@@ -42,10 +42,10 @@ export default function HomeBlogs() {
       <View className="px-4 mt-3 flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Ionicons name="newspaper-outline" size={20} color="#DF9755" />
-          <Text className="text-lg ml-1 font-psemibold text-gray-800">Featured Blogs</Text>
+          <Text className="text-lg ml-1 font-psemibold text-gray-800"> Bài Viết Nổi Bật</Text>
         </View>
         <TouchableOpacity>
-          <Text className="text-sm font-pmedium text-blue-500">View all</Text>
+          <Text className="text-sm font-pmedium text-blue-500"> Xem tất cả</Text>
         </TouchableOpacity>
       </View>
 

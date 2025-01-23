@@ -57,7 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="HomeScreen"
         options={{
-          title: "Home",
+          title: "Trang chủ",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -68,7 +68,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="MapScreen"
         options={{
-          title: "Map",
+          title: "Bản đồ",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="map" size={size} color={color} />
           ),
@@ -129,7 +129,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="AppointmentScreen"
         options={{
-          title: "Bookings",
+          title: "Đặt lịch",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" size={size} color={color} />
           ),
@@ -140,7 +140,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ProfileScreen"
         options={{
-          title: "Profile",
+          title: "Hồ sơ",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

@@ -6,7 +6,7 @@ export default function HomeSearchBar() {
       <View className="flex-row items-center bg-slate-100 rounded-full px-3 py-4">
         <Ionicons name="search" size={24} color="#1A8BFF" />
         <TextInput
-          placeholder="Search Doctor or Conditions"
+          placeholder="Tìm kiếm bác sĩ"
           placeholderTextColor="#9CA3AF"
           className="ml-2 flex-1 text-gray-700 font-pregular"
           textAlignVertical="center"

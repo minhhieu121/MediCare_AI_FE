@@ -735,7 +735,24 @@ const DoctorDetails = () => {
       throw error; // Re-throw to be handled by caller
     }
   };
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await fetchDoctorDetails();
+        await fetchAvailableTimeSlots(doctorId, new Date());
+      } catch (error) {
+        console.error("Failed to load data:", error);
+        // Bạn có thể hiển thị thông báo lỗi cho người dùng ở đây
+      } finally {
+        setLoading(false);
+      }
+    };
   
+    if (doctorId) {
+      loadData();
+    }
+  }, [doctorId]);
   // Usage in useEffect with error handling
   useEffect(() => {
     const loadTimeSlots = async () => {
@@ -769,7 +786,7 @@ const DoctorDetails = () => {
     setIsBookingConfirmed(true);
     startFloatingAnimation();
   };
-
+  
   if (loading) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center">
@@ -874,13 +891,13 @@ const DoctorDetails = () => {
               </View>
             </View>
 
-            <View className="flex-row flex-wrap justify-between item-center items-center mt-4 w-full">
+            <View className="flex-row flex-wrap gap-2 justify-center mt-4 w-full px-2">
               {timeSlots.map((slot, index) => (
                 <TouchableOpacity
                   key={index}
                   disabled={!slot.available}
                   onPress={() => setSelectedSlot(slot.time)}
-                  className={`px-4 py-2 rounded-lg m-1 ${
+                  className={`basis-[23%] px-3 py-2 rounded-lg ${
                     slot.available
                       ? selectedSlot === slot.time
                         ? "bg-[#2F51D7]"
