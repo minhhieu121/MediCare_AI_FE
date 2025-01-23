@@ -655,6 +655,8 @@ const DoctorDetails = () => {
   const [selectedSlot, setSelectedSlot] = useState("");
   const [reason, setReason] = useState("");
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const animatedValue = useRef(new Animated.Value(0)).current;
   const [loadingBook, setLoadingBook] = useState<boolean>(false);
 
@@ -735,6 +737,7 @@ const DoctorDetails = () => {
       throw error; // Re-throw to be handled by caller
     }
   };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -743,7 +746,7 @@ const DoctorDetails = () => {
         await fetchAvailableTimeSlots(doctorId, new Date());
       } catch (error) {
         console.error("Failed to load data:", error);
-        // Bạn có thể hiển thị thông báo lỗi cho người dùng ở đây
+        // Optionally, display an error message to the user here
       } finally {
         setLoading(false);
       }
@@ -752,19 +755,6 @@ const DoctorDetails = () => {
     if (doctorId) {
       loadData();
     }
-  }, [doctorId]);
-  // Usage in useEffect with error handling
-  useEffect(() => {
-    const loadTimeSlots = async () => {
-      try {
-        await fetchAvailableTimeSlots(doctorId, new Date());
-      } catch (error) {
-        console.error("Failed to load time slots:", error);
-        // Handle error (e.g., show error message to user)
-      }
-    };
-
-    loadTimeSlots();
   }, [doctorId]);
 
   // Floating animation
@@ -782,6 +772,7 @@ const DoctorDetails = () => {
     outputRange: [600, 0],
   });
 
+  // Booking confirmation handler
   const handleBookingConfirmation = () => {
     setLoadingBook(true);
     setTimeout(() => {
@@ -789,6 +780,74 @@ const DoctorDetails = () => {
       startFloatingAnimation();
       setLoadingBook(false);
     }, 2000);
+  };
+
+  // Booking function
+  const bookAppointment = async () => {
+    if (!doctorId || !selectedSlot || !reason) {
+      setBookingError("Please select a time slot and provide a reason for the appointment.");
+      return;
+    }
+
+    setBookingLoading(true);
+    setBookingError(null);
+
+    const appointmentDay = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+    const appointmentShift = timeSlots.find(slot => slot.time === selectedSlot)?.shift;
+
+    if (appointmentShift === undefined) {
+      setBookingError("Invalid time slot selected.");
+      setBookingLoading(false);
+      return;
+    }
+
+    const body = {
+      hospital_id: 35, // Fixed as per your requirement
+      department_id: 35, // Fixed as per your requirement
+      doctor_id: Number(doctorId),
+      patient_id: 20, // Fixed as per your requirement
+      appointment_day: appointmentDay,
+      appointment_shift: appointmentShift,
+      reason: reason,
+      status: "Scheduled",
+    };
+
+    try {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/appointments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to book appointment: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("Appointment booked successfully:", data);
+
+      // Optionally, you can refresh the available time slots
+      await fetchAvailableTimeSlots(doctorId, new Date());
+
+      // Show confirmation modal
+      handleBookingConfirmation();
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      setBookingError(error.message);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  // Optional: Reset booking state after confirmation
+  const closeConfirmationModal = () => {
+    setIsBookingConfirmed(false);
+    setSelectedSlot("");
+    setReason("");
   };
 
   if (loading) {
@@ -964,17 +1023,21 @@ const DoctorDetails = () => {
         {selectedSlot && reason && (
           <View className="flex-1 items-center justify-center mt-6 mb-6">
             <TouchableOpacity
-              onPress={handleBookingConfirmation}
+              onPress={bookAppointment}
               className="bg-[#2F51D7] px-4 py-4 w-[80%] rounded-lg items-center"
+              disabled={bookingLoading} // Disable button while loading
             >
-              {loadingBook ? (
-                <ActivityIndicator size="small" color="white" />
+              {bookingLoading ? (
+                <ActivityIndicator size="small" color="#ffffff" />
               ) : (
                 <Text className="text-white text-lg font-psemibold">
                   Đặt lịch hẹn
                 </Text>
               )}
             </TouchableOpacity>
+            {bookingError && (
+              <Text className="text-red-500 mt-2 text-center">{bookingError}</Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -1042,7 +1105,7 @@ const DoctorDetails = () => {
               borderRadius: 30,
             }}
             onPress={() => {
-              setIsBookingConfirmed(false);
+              closeConfirmationModal();
               router.push("/HomeScreen");
             }}
           >
