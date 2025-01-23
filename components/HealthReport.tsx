@@ -1,83 +1,39 @@
+// HealthReportDetail.tsx
 import React from "react";
 import { View, Text, ScrollView, FlatList, Dimensions } from "react-native";
 import { ProgressBar } from "react-native-paper";
 import { PieChart } from "react-native-chart-kit";
 
-// types.ts
-export interface PredictionResult {
-  disease: string;
-  percentage: number;
-}
-
-export interface HealthReport {
-  report_id: number;
-  appointment_id: number;
-  patient_id: number;
-  height: number; // Chiều cao (cm)
-  weight: number; // Cân nặng (kg)
-  medical_history: string[]; // Tiền sử bệnh án
-  clinical_info: string; // Thông tin khám sức khỏe lâm sàng
-  chat_content: string; // Triệu chứng (dạng chuỗi)
-  prediction_results: PredictionResult[];
-}
-
-export interface HealthReportProps {
-  report: HealthReport;
-}
-
-
-export const fakeHealthReport: HealthReport = {
-  report_id: 101,
-  appointment_id: 501,
-  patient_id: 1001,
-  height: 175, // Chiều cao: 175 cm
-  weight: 70, // Cân nặng: 70 kg
-  medical_history: ["Tiểu đường", "Huyết áp cao"], // Tiền sử bệnh án
-  clinical_info: "Khám tổng quát: Cân đối, không có dấu hiệu bất thường về tim mạch và hô hấp.",
-  chat_content: "Triệu chứng: Ho khan, sốt nhẹ, mệt mỏi kéo dài, đau họng, khó thở lúc ban đêm.",
-  prediction_results: [
-    { disease: "Covid-19", percentage: 40 },
-    { disease: "Cảm cúm", percentage: 30 },
-    { disease: "Viêm họng", percentage: 15 },
-    { disease: "Khác", percentage: 15 },
+const sample_prediction_result = {
+  "ThongTinBenhNhan": {
+      "HoVaTen": "Vũ Xuân Vinh",
+      "Tuoi": "20",
+      "GioiTinh": "Nam",
+      "LienHe": "0778984805"
+  },
+  "TrieuChungVaPhanNan": {
+      "MoTa": "Bệnh nhân báo cáo ngứa và đỏ da tại vùng cổ tay, lan đến cánh tay.",
+      "ThoiGianBatDau": "Vài ngày trước sau khi sử dụng một chiếc vòng tay mới.",
+      "TrieuChungChiTiet": [
+          "Ngứa",
+          "Đỏ da", 
+          "Khô",
+          "Tróc vảy",
+          "Một số mụn nước nhỏ"
+      ]
+  },
+  "KetQuaSoBo": {
+      "ChanDoanAI": "Viêm da tiếp xúc dị ứng",
+      "NguyenNhanDuKien": "Do tiếp xúc với kim loại trong chiếc vòng tay."
+  },
+  "KhuyenNghiChoBacSi": [
+      "Yêu cầu bệnh nhân ngừng sử dụng vòng tay nghi ngờ là nguyên nhân.",
+      "Tửng thực kiểm tra lâm sàng vùng da bị tác động.",
+      "Xem xét kê đơn kem bôi corticosteroid nhẹ và thuốc kháng histamine nếu ngứa nhiều.",
+      "Khuyên bệnh nhân dợ rửa vùng da tác động với nước sạch và xà phòng không gây kích ứng."
   ],
-};
-
-// Nếu bạn muốn tạo nhiều báo cáo giả:
-export const fakeHealthReports: HealthReport[] = [
-  {
-    report_id: 101,
-    appointment_id: 501,
-    patient_id: 1001,
-    height: 175,
-    weight: 70,
-    medical_history: ["Tiểu đường", "Huyết áp cao"],
-    clinical_info: "Khám tổng quát: Cân đối, không có dấu hiệu bất thường về tim mạch và hô hấp.",
-    chat_content: "Triệu chứng: Ho khan, sốt nhẹ, mệt mỏi kéo dài, đau họng, khó thở lúc ban đêm.",
-    prediction_results: [
-      { disease: "Covid-19", percentage: 40 },
-      { disease: "Cảm cúm", percentage: 30 },
-      { disease: "Viêm họng", percentage: 15 },
-      { disease: "Khác", percentage: 15 },
-    ],
-  },
-  {
-    report_id: 102,
-    appointment_id: 502,
-    patient_id: 1002,
-    height: 160,
-    weight: 60,
-    medical_history: ["Hen suyễn"],
-    clinical_info: "Khám tổng quát: Nhẹm mạch đều, phổi nghe phổi rõ ràng.",
-    chat_content: "Triệu chứng: Đau bụng, buồn nôn, tiêu chảy, mất cảm giác vị giác và khứu giác.",
-    prediction_results: [
-      { disease: "Viêm ruột", percentage: 35 },
-      { disease: "Cúm đường ruột", percentage: 25 },
-      { disease: "Đau dạ dày", percentage: 20 },
-      { disease: "Khác", percentage: 20 },
-    ],
-  },
-];
+  "LuuYGuiBacSi": "Báo cáo này được tạo tự động bởi hệ thống AI nhằm cung cấp tóm tắt ban đầu cho bác sĩ tham khảo. Vui lòng xác nhận kết quả qua khám lâm sàng và xét nghiệm."
+}
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -86,117 +42,126 @@ const getColor = (index: number) => {
   return colors[index % colors.length];
 };
 
-const HealthReportDetail: React.FC<HealthReportProps> = ({ report }) => {
-  // Tách triệu chứng từ chat_content
-  const symptoms = report.chat_content
-    .replace("Triệu chứng:", "")
-    .split(",")
-    .map((symptom) => symptom.trim());
+const HealthReportDetail: React.FC = () => {
+  const report = sample_prediction_result;
 
   // Chuẩn bị dữ liệu cho biểu đồ
-  const chartData = report.prediction_results.map((item, index) => ({
-    name: item.disease,
-    population: item.percentage,
-    color: getColor(index),
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 12,
-  }));
+  const chartData = report.KetQuaSoBo.ChanDoanAI
+    ? [
+        {
+          name: report.KetQuaSoBo.ChanDoanAI,
+          population: 70,
+          color: getColor(0),
+          legendFontColor: "#7F7F7F",
+          legendFontSize: 12,
+        },
+        {
+          name: report.KetQuaSoBo.NguyenNhanDuKien,
+          population: 30,
+          color: getColor(1),
+          legendFontColor: "#7F7F7F",
+          legendFontSize: 12,
+        },
+      ]
+    : [];
+
+    const symptoms = report.TrieuChungVaPhanNan.TrieuChungChiTiet.map(
+      (symptom) => symptom.trim()
+    );
 
   return (
-    <ScrollView className="p-4 bg-white flex-1">
+    <ScrollView className="p-6 bg-white flex-1">
       {/* Tiêu đề */}
-      <View className="mb-6">
-        <Text className="text-2xl font-bold mb-2">Chi Tiết Báo Cáo Sức Khỏe</Text>
-        <View className="border-b border-gray-200" />
+      <View className="mb-8">
+        <Text className="text-3xl font-psemibold text-gray-800 mb-2">
+          Chi Tiết Báo Cáo Sức Khỏe
+        </Text>
+        <View className="h-1 bg-gray-100 rounded-full" />
       </View>
 
-      {/* Thông tin cơ bản */}
-      <View className="mb-4">
-        <Text className="text-gray-600">Mã Báo Cáo:</Text>
-        <Text className="text-black text-lg">{report.report_id}</Text>
-      </View>
-
-      <View className="mb-4">
-        <Text className="text-gray-600">Mã Cuộc Hẹn:</Text>
-        <Text className="text-black text-lg">{report.appointment_id}</Text>
-      </View>
-
-      <View className="mb-4">
-        <Text className="text-gray-600">Mã Bệnh Nhân:</Text>
-        <Text className="text-black text-lg">{report.patient_id}</Text>
-      </View>
-
-      {/* Thông tin sức khỏe cá nhân */}
-      <View className="mb-6">
-        <Text className="text-gray-600 mb-2">Thông Tin Sức Khỏe Cá Nhân:</Text>
-        <View className="flex-row mb-2">
-          <Text className="text-gray-600">Chiều Cao:</Text>
-          <Text className="text-black ml-2">{report.height} cm</Text>
+      {/* Thông tin bệnh nhân */}
+      <View className="mb-8">
+        <Text className="text-2xl font-psemibold text-gray-800 mb-4">
+          Thông Tin Bệnh Nhân
+        </Text>
+        <View className="mb-4">
+          <Text className="text-lg font-pmedium text-gray-600">Họ Và Tên:</Text>
+          <Text className="text-xl text-gray-800">{report.ThongTinBenhNhan.HoVaTen}</Text>
         </View>
-        <View className="flex-row mb-2">
-          <Text className="text-gray-600">Cân Nặng:</Text>
-          <Text className="text-black ml-2">{report.weight} kg</Text>
+        <View className="mb-4">
+          <Text className="text-lg font-pmedium text-gray-600">Tuổi:</Text>
+          <Text className="text-xl text-gray-800">{report.ThongTinBenhNhan.Tuoi}</Text>
         </View>
-        <View className="flex-row mb-2">
-          <Text className="text-gray-600">Tiền Sử Bệnh Án:</Text>
-          <View className="flex-1 flex-wrap flex-row">
-            {report.medical_history.map((history, index) => (
-              <View
-                key={index}
-                className="bg-blue-100 rounded-full px-3 py-1 mr-2 mb-2"
-              >
-                <Text className="text-blue-800 text-sm">{history}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        <View className="flex-row">
-          <Text className="text-gray-600">Thông Tin Khám Lâm Sàng:</Text>
-          <Text className="text-black ml-2">{report.clinical_info}</Text>
+        <View className="mb-4">
+          <Text className="text-lg font-pmedium text-gray-600">Giới Tính:</Text>
+          <Text className="text-xl text-gray-800">{report.ThongTinBenhNhan.GioiTinh}</Text>
         </View>
       </View>
 
       {/* Triệu chứng */}
-      <View className="mb-6">
-        <Text className="text-gray-600 mb-2">Triệu Chứng:</Text>
-        <View className="flex-row flex-wrap">
-          {symptoms.map((symptom, index) => (
-            <View
-              key={index}
-              className="bg-green-100 rounded-full px-3 py-1 mr-2 mb-2"
-            >
-              <Text className="text-green-800 text-sm">{symptom}</Text>
-            </View>
-          ))}
+      <View className="mb-8">
+        <Text className="text-2xl font-psemibold text-gray-800 mb-4">
+          Triệu Chứng
+        </Text>
+        <View className="mb-4">
+          <Text className="text-lg font-pmedium text-gray-600">Mô Tả:</Text>
+          <Text className="text-xl text-gray-800">
+            {report.TrieuChungVaPhanNan.MoTa}
+          </Text>
+        </View>
+        <View className="mb-4">
+          <Text className="text-lg font-pmedium text-gray-600">
+            Thời Gian Bắt Đầu:
+          </Text>
+          <Text className="text-xl text-gray-800">
+            {report.TrieuChungVaPhanNan.ThoiGianBatDau}
+          </Text>
+        </View>
+        <View>
+          <Text className="text-lg font-pmedium text-gray-600 mb-2">
+            Triệu Chứng Chi Tiết:
+          </Text>
+          <View className="flex-row flex-wrap">
+            {symptoms.map((symptom, index) => (
+              <View
+                key={index}
+                className="bg-green-100 rounded-full px-4 py-2 mr-3 mb-3"
+              >
+                <Text className="text-green-800 text-sm">{symptom}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
 
-      {/* Kết quả dự đoán */}
-      <View className="mb-6">
-        <Text className="text-gray-600 mb-2">Kết Quả Dự Đoán:</Text>
-        <PieChart
-          data={chartData}
-          width={screenWidth - 32}
-          height={220}
-          chartConfig={{
-            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          }}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute
-        />
-        <View className="mt-4">
-          {report.prediction_results.map((item, index) => (
-            <View key={index} className="flex-row items-center mb-2">
-              <View
-                className="w-3 h-3 rounded-full mr-2"
-                style={{ backgroundColor: getColor(index) }}
-              />
-              <Text className="text-gray-700">{item.disease}: {item.percentage}%</Text>
+      {/* Kết quả sơ bộ */}
+      
+
+      {/* Khuyến nghị cho bác sĩ */}
+      {/* <View className="mb-8">
+        <Text className="text-2xl font-psemibold text-gray-800 mb-4">
+          Khuyến Nghị Cho Bác Sĩ
+        </Text>
+        <FlatList
+          data={report.KhuyenNghiChoBacSi}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View className="flex-row items-start mb-3">
+              <Text className="text-xl font-psemibold text-gray-600 mr-3">•</Text>
+              <Text className="text-lg text-gray-800 flex-1">{item}</Text>
             </View>
-          ))}
-        </View>
+          )}
+        />
+      </View> */}
+
+      {/* Lưu ý gửi bác sĩ */}
+      <View className="mb-8">
+        <Text className="text-2xl font-psemibold text-gray-800 mb-4">
+          Lưu Ý Gửi Bác Sĩ
+        </Text>
+        <Text className="text-lg text-gray-800">
+          {report.LuuYGuiBacSi}
+        </Text>
       </View>
     </ScrollView>
   );

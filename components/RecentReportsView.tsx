@@ -85,11 +85,11 @@ function ReportCard({ report, screenWidth }: { report: any; screenWidth: number 
   return (
     <TouchableOpacity
       onPress={() => console.log("Xem chi tiết report:", report.report_id)}
-      className="mr-4 w-64 h-80 rounded-xl overflow-hidden shadow-md border border-gray-100"
+      className="mr-4 w-64 h-40 rounded-xl overflow-hidden shadow-md border border-gray-100"
       activeOpacity={0.9}
     >
       {/* Header (gradient ~ 35% chiều cao) */}
-      <View className="h-[15%] relative">
+      <View className="h-[30%] relative">
         <LinearGradient
           colors={["#5D9CFF", "#7A69EE"]} // xanh dương -> tím
           start={{ x: 0, y: 0 }}
@@ -117,7 +117,7 @@ function ReportCard({ report, screenWidth }: { report: any; screenWidth: number 
       {/* Body (chiếm ~65% còn lại) */}
       <View className="flex-1 bg-white p-3">
         {/* Pie Chart */}
-        <PieChart
+        {/* <PieChart
           data={pieData}
           width={screenWidth * 0.5} // Rộng ~ nửa màn hình
           height={90}               // Chiều cao chart
@@ -129,20 +129,20 @@ function ReportCard({ report, screenWidth }: { report: any; screenWidth: number 
           paddingLeft={"0"}
           center={[0, 0]}
           hasLegend={false}
-        />
+        /> */}
 
         {/* Danh sách bệnh + % (Legend tùy chỉnh) */}
-        <View className="mt-1 space-y-0.5">
+        {/* <View className="mt-1 space-y-0.5">
           {report.prediction_results.map((item: any, idx: number) => (
             <Text key={idx} className="text-xs text-gray-700">
               • {item.disease}: {item.percentage}%
             </Text>
           ))}
-        </View>
+        </View> */}
 
         {/* Triệu chứng (chat_content) */}
         <Text
-          className="text-xs text-gray-600 mt-2"
+          className="text-md font-pregular text-gray-600 mt-2"
           numberOfLines={2}
           ellipsizeMode="tail"
         >

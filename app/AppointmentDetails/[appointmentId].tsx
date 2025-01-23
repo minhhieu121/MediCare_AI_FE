@@ -5,7 +5,9 @@ import { LinearGradient } from "expo-linear-gradient"; // Nếu sử dụng Expo
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import RecentReportsView from "@/components/RecentReportsView";
-import HealthReportDetail, { fakeHealthReport } from "@/components/HealthReport";
+import HealthReportDetail, {
+  fakeHealthReport,
+} from "@/components/HealthReport";
 
 enum APPOINTMENT_STATUS {
   SCHEDULED = "Scheduled",
@@ -45,13 +47,13 @@ const AppointmentDetails: React.FC = () => {
     room_id: 3,
     doctor_id: 1,
     patient_id: 1,
-    appointment_day: "2022-12-31",
-    appointment_shift: 2,
-    reason: "Cảm thấy mệt, đau đầu, cần kiểm tra tổng quát.",
+    appointment_day: "2024-01-24",
+    appointment_shift: 0,
+    reason: "Bị ngứa và đỏ da tại vùng cổ tay, lan đến cánh tay.",
     status: APPOINTMENT_STATUS.SCHEDULED,
     appointment_id: 1,
-    doctor_fullname: "BS. Trần Thị B",
-    doctor_specialty: "Khoa Nội tiết",
+    doctor_fullname: "BS. Nguyễn Thị Lan",
+    doctor_specialty: "Khoa Da liễu",
   };
 
   // Màu & icon trạng thái
@@ -81,10 +83,7 @@ const AppointmentDetails: React.FC = () => {
 
   return (
     <SafeAreaView className="bg-white">
-      <ScrollView
-       showsVerticalScrollIndicator={false}
-       className="w-full"
-      >
+      <ScrollView showsVerticalScrollIndicator={false} className="w-full">
         {/* Header */}
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="p-2">
@@ -129,8 +128,7 @@ const AppointmentDetails: React.FC = () => {
               <Text className="ml-2 text-gray-500 text-sm">Thời gian</Text>
             </View>
             <Text className="text-lg font-semibold text-gray-800">
-              {convertDate(appointment.appointment_day)} (
-              {convertShiftToTime(appointment.appointment_shift)})
+              {convertDate(appointment.appointment_day)} (08:00 - 08:30)
             </Text>
           </View>
 
@@ -187,7 +185,9 @@ const AppointmentDetails: React.FC = () => {
           </View>
         </View> */}
         {/* <RecentReportsView /> */}
-        <HealthReportDetail report={fakeHealthReport} />
+        <View className="bg-slate-100 py-1"></View>
+
+        <HealthReportDetail />
       </ScrollView>
     </SafeAreaView>
   );

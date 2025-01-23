@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { Redirect, router, useRouter } from "expo-router";
+import { Redirect, router, useFocusEffect, useRouter } from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
 import Svg, { Circle, Line } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -42,9 +42,9 @@ enum APPOINTMENT_STATUS {
 const convertShiftToTime = (shift: number) => {
   if (shift >= 0 && shift <= 9) {
     if (shift % 2 === 0) {
-      return `0${shift + 7}:00 - 0${shift + 7}:30`;
+      return `0${shift + 6}:00 - 0${shift + 6}:30`;
     }
-    return `0${shift + 7}:30 - 0${shift + 8}:00`;
+    return `0${shift + 6}:30 - 0${shift + 7}:00`;
   } else {
     if (shift % 2 === 0) {
       return `${shift + 3}:00 - ${shift + 3}:30`;
@@ -59,6 +59,13 @@ const convertDate = (date: string) => {
   const day = date.slice(8, 10);
   return `${day}/${month}/${year}`;
 };
+
+const renderLoading = () => (
+  <View className="flex-1 justify-center items-center">
+    <ActivityIndicator size="large" color="#0000ff" />
+    <Text className="text-blue-700 font-psemibold mt-2">Loading...</Text>
+  </View>
+);
 
 const renderAppointment = ({ item }: { item: Appointment }) => (
   <TouchableOpacity onPress={() => {
@@ -117,27 +124,38 @@ const ProfileScreen = () => {
   const [errorAppointments, setErrorAppointments] = React.useState<
     string | null
   >(null);
+  const [loading, setLoading] = React.useState<boolean>(true);
+
 
   // useEffect to check token validity and fetch user data
-  useEffect(() => {
-    if (!token || isExpired(token)) {
-      Alert.alert("Session Expired", "Please log in again.");
-      handleLogout();
-    } else {
-      const fetchData = async () => {
-        const data = await getMyProfile();
-        if (data && data.user_id) {
-          // Assuming 'id' is part of SignUpData
-          setUserData(data);
-          await getUserAppointments(data.user_id);
-        } else {
-          Alert.alert("Error", "User ID not found.");
+  useFocusEffect(
+    useCallback(() => {
+      const fetchProfileAndAppointments = async () => {
+        if (!token || isExpired(token)) {
+          Alert.alert("Session Expired", "Please log in again.");
+          handleLogout();
+          return;
+        }
+
+        try {
+          setLoading(true);
+          const userProfile = await getMyProfile();
+          if (userProfile && userProfile.user_id) {
+            setUserData(userProfile);
+            await getUserAppointments(userProfile.user_id);
+          } else {
+            Alert.alert("Error", "User ID not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        } finally {
+          setLoading(false);
         }
       };
 
-      fetchData();
-    }
-  }, [token]);
+      fetchProfileAndAppointments();
+    }, [])
+  );
 
   const handleLogout = async () => {
     try {
@@ -246,7 +264,7 @@ const ProfileScreen = () => {
               >
                 <LinearGradient
                   // Gradient colors (from left to right)
-                  colors={["#ff6f61", "#ff914d"]}
+                  colors={["#A0A0A0", "#D3D3D3"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   className="flex-row items-center justify-center rounded-3xl mb-24 shadow-lg"

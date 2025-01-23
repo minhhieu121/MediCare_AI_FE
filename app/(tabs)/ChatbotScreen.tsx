@@ -53,7 +53,7 @@ const ChatbotScreen: React.FC = () => {
   
     const requestBody = {
       text: inputText,
-      voice: 'hcm-diemmy',
+      voice: 'hcm-phuongly',
       speed: 1.0,
       tts_return_option: 3, // 3: mp3
       token: apiToken,

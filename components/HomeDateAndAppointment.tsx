@@ -8,21 +8,21 @@ export default function HomeDateAndAppointment() {
       <View className="flex-row px-4 space-x-2 pb-4">
         {/* Lịch ngày */}
         <View className="bg-blue-900/90 w-24 h-28 rounded-xl items-center justify-center pt-3 mr-4">
-          <Text className="text-white text-sm mb-1 font-psemibold">Sunday</Text>
+          <Text className="text-white text-sm mb-1 font-psemibold">Thursday</Text>
           <Text className="text-white font-bold text-3xl font-psemibold">
-            28
+            23
           </Text>
-          <Text className="text-white text-sm mt-1 font-psemibold">Feb</Text>
+          <Text className="text-white text-sm mt-1 font-psemibold">Jan</Text>
         </View>
 
         <View className="flex-1 bg-[#E8F3FF] rounded-xl p-4">
           {/* Tiêu đề */}
           <View className="flex-row justify-between items-center">
             <Text className="text-base font-semibold text-gray-800">
-              Cuộc hẹn hôm nay
+              Cuộc hẹn sắp tới
             </Text>
             {/* Nút xem chi tiết (tuỳ chọn) */}
-            <TouchableOpacity className="rounded-full self-start">
+            <TouchableOpacity className="rounded-full self-start" onPress={() => {router.push("/AppointmentDetails/1")}}>
               <Text className="text-sm text-blue-700 font-pmedium">
                 Xem chi tiết
               </Text>
@@ -40,10 +40,10 @@ export default function HomeDateAndAppointment() {
             {/* Tên bác sĩ + chức danh */}
             <View className="flex-1">
               <Text className="text-sm font-medium text-gray-800">
-                Dr. John Today
+                Bs. Nguyễn Thị Lan
               </Text>
-              <Text className="text-xs text-gray-500">Cardiologist</Text>
-              <Text className="text-xs text-gray-500">10:00 - 10:30</Text>
+              <Text className="text-xs text-gray-500">Khoa da liễu</Text>
+              <Text className="text-xs text-gray-500">8:00 - 8:30</Text>
             </View>
 
             {/* Nút gọi (tuỳ chọn) */}
