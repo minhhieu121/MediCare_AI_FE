@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-
+import thoQuanImage from '../assets/tho-quan.jpeg';
 interface MessageBubbleProps {
   message: string;
   isUser: boolean;
@@ -13,9 +13,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isUser }) => {
       {/* Avatar bên trái cho chatbot */}
       {!isUser && (
         <Image
-          source={{
-            uri: 'https://picsum.photos/200',
-          }}
+          source={thoQuanImage}
           className="w-8 h-8 rounded-full mr-2"
         />
       )}

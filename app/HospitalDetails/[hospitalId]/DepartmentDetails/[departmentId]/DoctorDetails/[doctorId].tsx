@@ -889,7 +889,7 @@ const DoctorDetails = () => {
                 <View className="flex-row items-center mt-1">
                   <Ionicons name="business-outline" size={16} color="#6B7280" />
                   <Text className="text-gray-400 ml-1 font-pregular text-md">
-                    {doctor?.hospital_name || "Hospital"}
+                    {doctor?.hospital_name || "Bệnh viện Trưng Vương"}
                   </Text>
                 </View>
               </View>

@@ -8,11 +8,11 @@ export default function HomeDateAndAppointment() {
       <View className="flex-row px-4 space-x-2 pb-4">
         {/* Lịch ngày */}
         <View className="bg-blue-900/90 w-24 h-28 rounded-xl items-center justify-center pt-3 mr-4">
-          <Text className="text-white text-sm mb-1 font-psemibold">Chủ nhật</Text>
+          <Text className="text-white text-sm mb-1 font-psemibold">Thứ Năm</Text>
           <Text className="text-white font-bold text-3xl font-psemibold">
-            28
+            23
           </Text>
-          <Text className="text-white text-sm mt-1 font-psemibold">Tháng Hai</Text>
+          <Text className="text-white text-sm mt-1 font-psemibold">Tháng Một</Text>
         </View>
 
         <View className="flex-1 bg-[#E8F3FF] rounded-xl p-4">
@@ -33,17 +33,17 @@ export default function HomeDateAndAppointment() {
           <View className="flex-row items-center mt-1">
             {/* Ảnh avatar bác sĩ (chẳng hạn) */}
             <Image
-              source={{ uri: "https://picsum.photos/50" }}
+              source={{ uri: "https://img.freepik.com/free-photo/portrait-3d-male-doctor_23-2151107221.jpg" }}
               className="w-12 h-12 rounded-full mr-3"
               resizeMode="cover"
             />
             {/* Tên bác sĩ + chức danh */}
             <View className="flex-1">
               <Text className="text-sm font-medium text-gray-800">
-                Dr. Nguyễn Văn Thành
+                Dr. Phạm Hoàng Nam
               </Text>
-              <Text className="text-xs text-gray-500">Bác sĩ tim mạch</Text>
-              <Text className="text-xs text-gray-500">10:00 - 10:30</Text>
+              <Text className="text-xs text-gray-500">Chuyên khoa Tim Mạch</Text>
+              <Text className="text-xs text-gray-500">07:00 - 07:30</Text>
             </View>
 
             {/* Nút gọi (tuỳ chọn) */}
