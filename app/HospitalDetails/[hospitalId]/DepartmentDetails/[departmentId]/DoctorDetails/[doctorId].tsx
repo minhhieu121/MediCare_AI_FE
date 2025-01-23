@@ -656,6 +656,7 @@ const DoctorDetails = () => {
   const [reason, setReason] = useState("");
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
   const animatedValue = useRef(new Animated.Value(0)).current;
+  const [loadingBook, setLoadingBook] = useState<boolean>(false);
 
   // Function to fetch doctor details
   const fetchDoctorDetails = async () => {
@@ -683,55 +684,54 @@ const DoctorDetails = () => {
     const baseHour = 7;
     const hour = Math.floor(shift / 2) + baseHour;
     const minutes = shift % 2 === 0 ? "00" : "30";
-    
+
     return hour <= 9 ? `0${hour}:${minutes}` : `${hour}:${minutes}`;
   };
-  
 
   // Function to fetch available time slots
-  const fetchAvailableTimeSlots = async (doctorId: string, date: Date) => {
+  const fetchAvailableTimeSlots = async (doctorId: string | string[], date: Date) => {
     try {
       const formattedDate = date.toISOString().split("T")[0];
-      console.log('Fetching slots for:', { doctorId, formattedDate });
-  
+      console.log("Fetching slots for:", { doctorId, formattedDate });
+
       const url = `${process.env.EXPO_PUBLIC_API_URL}/api/appointments?user_id=${doctorId}&start_date=${formattedDate}&end_date=${formattedDate}`;
-      console.log('Request URL:', url);
-  
+      console.log("Request URL:", url);
+
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
-      console.log('Response status:', response.status);
-  
+
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error(`Failed to fetch appointments: ${response.status} ${errorText}`);
+        console.error("Error response:", errorText);
+        throw new Error(
+          `Failed to fetch appointments: ${response.status} ${errorText}`
+        );
       }
-  
+
       const bookedAppointments: Appointment[] = await response.json();
-      console.log('Booked appointments:', bookedAppointments);
-  
-      const bookedShifts = new Set(bookedAppointments.map((app) => app.appointment_shift));
-      console.log('Booked shifts:', Array.from(bookedShifts));
-  
+      console.log("Booked appointments:", bookedAppointments);
+
+      const bookedShifts = new Set(
+        bookedAppointments.map((app) => app.appointment_shift)
+      );
+      console.log("Booked shifts:", Array.from(bookedShifts));
+
       // Generate all possible shifts (0-23 representing shifts from 7:00 AM to 7:00 PM)
       const allTimeSlots = Array.from({ length: 20 }, (_, i) => ({
         shift: i,
         time: formatShift(i),
-        available: !bookedShifts.has(i)
+        available: !bookedShifts.has(i),
       }));
-      
-  
-      console.log('Final time slots:', allTimeSlots);
+
+      console.log("Final time slots:", allTimeSlots);
       setTimeSlots(allTimeSlots);
     } catch (error) {
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-      });
+      console.error("Error details:", error);
       throw error; // Re-throw to be handled by caller
     }
   };
@@ -748,7 +748,7 @@ const DoctorDetails = () => {
         setLoading(false);
       }
     };
-  
+
     if (doctorId) {
       loadData();
     }
@@ -759,11 +759,11 @@ const DoctorDetails = () => {
       try {
         await fetchAvailableTimeSlots(doctorId, new Date());
       } catch (error) {
-        console.error('Failed to load time slots:', error);
+        console.error("Failed to load time slots:", error);
         // Handle error (e.g., show error message to user)
       }
     };
-    
+
     loadTimeSlots();
   }, [doctorId]);
 
@@ -783,10 +783,14 @@ const DoctorDetails = () => {
   });
 
   const handleBookingConfirmation = () => {
-    setIsBookingConfirmed(true);
-    startFloatingAnimation();
+    setLoadingBook(true);
+    setTimeout(() => {
+      setIsBookingConfirmed(true);
+      startFloatingAnimation();
+      setLoadingBook(false);
+    }, 2000);
   };
-  
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center">
@@ -849,7 +853,9 @@ const DoctorDetails = () => {
               <Text className="text-lg font-bold text-gray-900 text-center">
                 {doctor?.doctor_rating || "4.5"}
               </Text>
-              <Text className="text-gray-500 text-xs text-center">Đánh giá</Text>
+              <Text className="text-gray-500 text-xs text-center">
+                Đánh giá
+              </Text>
             </View>
           </View>
 
@@ -859,7 +865,9 @@ const DoctorDetails = () => {
               <Text className="text-lg font-bold text-gray-900 text-center">
                 {doctor?.doctor_experience || "5"} Năm
               </Text>
-              <Text className="text-gray-500 text-xs text-center">Kinh nghiệm</Text>
+              <Text className="text-gray-500 text-xs text-center">
+                Kinh nghiệm
+              </Text>
             </View>
           </View>
 
@@ -869,7 +877,9 @@ const DoctorDetails = () => {
               <Text className="text-lg font-bold text-gray-900 text-center">
                 100+
               </Text>
-              <Text className="text-gray-500 text-xs text-center">Bệnh nhân</Text>
+              <Text className="text-gray-500 text-xs text-center">
+                Bệnh nhân
+              </Text>
             </View>
           </View>
         </View>
@@ -886,7 +896,7 @@ const DoctorDetails = () => {
               </View>
               <View className="bg-pink-200 px-3 py-2 rounded-full">
                 <Text className="text-pink-600 font-pmedium text-sm">
-                  {timeSlots.filter(slot => slot.available).length} Chỗ
+                  {timeSlots.filter((slot) => slot.available).length} Chỗ
                 </Text>
               </View>
             </View>
@@ -927,7 +937,8 @@ const DoctorDetails = () => {
                     Cuộc hẹn của bạn sẽ vào lúc {selectedSlot}, kéo dài 30 phút.
                   </Text>
                   <Text className="text-gray-700 mt-2 font-pregular">
-                    Vui lòng mô tả triệu chứng hoặc mối quan tâm của bạn để bác sĩ có thể chuẩn bị tốt hơn.
+                    Vui lòng mô tả triệu chứng hoặc mối quan tâm của bạn để bác
+                    sĩ có thể chuẩn bị tốt hơn.
                   </Text>
                 </View>
 
@@ -956,9 +967,13 @@ const DoctorDetails = () => {
               onPress={handleBookingConfirmation}
               className="bg-[#2F51D7] px-4 py-4 w-[80%] rounded-lg items-center"
             >
-              <Text className="text-white text-lg font-psemibold">
-                Book Appointment
-              </Text>
+              {loadingBook ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="text-white text-lg font-psemibold">
+                  Đặt lịch hẹn
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -987,7 +1002,9 @@ const DoctorDetails = () => {
             <Text style={{ fontSize: 24, fontWeight: "bold", color: "#333" }}>
               Xác nhận đặt lịch
             </Text>
-            <Text style={{ color: "#6B7280", textAlign: "center", marginTop: 10 }}>
+            <Text
+              style={{ color: "#6B7280", textAlign: "center", marginTop: 10 }}
+            >
               Cuộc hẹn của bạn với Dr. {doctor?.fullname} đã được xác nhận.
             </Text>
           </View>
@@ -1024,7 +1041,10 @@ const DoctorDetails = () => {
               padding: 15,
               borderRadius: 30,
             }}
-            onPress={() => setIsBookingConfirmed(false)}
+            onPress={() => {
+              setIsBookingConfirmed(false);
+              router.push("/HomeScreen");
+            }}
           >
             <Text style={{ color: "white", textAlign: "center", fontSize: 18 }}>
               Trở về màn hình chính
