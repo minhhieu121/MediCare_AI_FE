@@ -11,7 +11,7 @@ export default function HomeBooking() {
           {/* Tiêu đề */}
           <View className="flex-row items-center justify-between mb-2">
             <Text className="text-xl font-psemibold text-gray-800 w-[80%]">
-              Book appointment an expert surgeon
+            Đặt lịch hẹn với bác sĩ chuyên khoa
             </Text>
             {/* Icon mũi tên điều hướng bên phải (theo design) */}
             <TouchableOpacity
@@ -30,7 +30,7 @@ export default function HomeBooking() {
 
           {/* Phụ đề */}
           <Text className="text-gray-500 text-sm mb-3 font-pmedium">
-            Treat common symptoms with specialist
+          Điều trị các triệu chứng phổ biến với bác sĩ chuyên khoa
           </Text>
 
           {/* 4 - 5 icon cơ quan */}

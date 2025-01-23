@@ -689,7 +689,7 @@ const interpolatePoints = (
               setRouteCoordinates([]);
               setMidPoints([]);
             }}
-            placeholder="Search destination..."
+            placeholder="Tìm điểm đến..."
           />
 
           {!destination && (

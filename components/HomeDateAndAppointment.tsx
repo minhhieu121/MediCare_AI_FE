@@ -8,11 +8,11 @@ export default function HomeDateAndAppointment() {
       <View className="flex-row px-4 space-x-2 pb-4">
         {/* Lịch ngày */}
         <View className="bg-blue-900/90 w-24 h-28 rounded-xl items-center justify-center pt-3 mr-4">
-          <Text className="text-white text-sm mb-1 font-psemibold">Sunday</Text>
+          <Text className="text-white text-sm mb-1 font-psemibold">Chủ nhật</Text>
           <Text className="text-white font-bold text-3xl font-psemibold">
             28
           </Text>
-          <Text className="text-white text-sm mt-1 font-psemibold">Feb</Text>
+          <Text className="text-white text-sm mt-1 font-psemibold">Tháng Hai</Text>
         </View>
 
         <View className="flex-1 bg-[#E8F3FF] rounded-xl p-4">
@@ -40,9 +40,9 @@ export default function HomeDateAndAppointment() {
             {/* Tên bác sĩ + chức danh */}
             <View className="flex-1">
               <Text className="text-sm font-medium text-gray-800">
-                Dr. John Today
+                Dr. Nguyễn Văn Thành
               </Text>
-              <Text className="text-xs text-gray-500">Cardiologist</Text>
+              <Text className="text-xs text-gray-500">Bác sĩ tim mạch</Text>
               <Text className="text-xs text-gray-500">10:00 - 10:30</Text>
             </View>
 

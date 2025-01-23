@@ -44,12 +44,12 @@ export default function RecentReportsView() {
         <View className="flex-row items-center">
           <Ionicons name="document-text-outline" size={20} color="#FEA5AD" />
           <Text className="text-lg ml-1 font-psemibold text-gray-800">
-            Recent Health Reports
+          Báo Cáo Sức Khỏe Gần Đây
           </Text>
         </View>
         <TouchableOpacity>
           <Text className="text-sm font-pmedium text-blue-500">
-            View all
+            Xem tất cả
           </Text>
         </TouchableOpacity>
       </View>
@@ -108,7 +108,7 @@ function ReportCard({ report, screenWidth }: { report: any; screenWidth: number 
           <View className="flex-row items-center">
             <Ionicons name="document-text-outline" size={20} color="#fff" />
             <Text className="text-white font-semibold ml-2">
-              Report #{report.report_id}
+              Báo cáo #{report.report_id}
             </Text>
           </View>
         </LinearGradient>

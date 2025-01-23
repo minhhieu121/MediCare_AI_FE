@@ -91,7 +91,7 @@ const AppointmentDetails: React.FC = () => {
             <Icon name="arrow-back-outline" size={24} color="#000" />
           </TouchableOpacity>
           <Text className="text-2xl font-psemibold text-gray-800 ml-4">
-            Back
+            Trở về
           </Text>
         </View>
         {/* <View className="p-4 flex-row justify-between items-center shadow-md">

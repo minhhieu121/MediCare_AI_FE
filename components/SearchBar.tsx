@@ -14,7 +14,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   searchQuery,
   setSearchQuery,
   onClear,
-  placeholder = "Search destination...",
+  placeholder = "Tìm đỉm đến...",
 }) => {
   const inputRef = useRef<TextInput>(null);
 
