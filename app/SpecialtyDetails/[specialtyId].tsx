@@ -202,7 +202,7 @@ const SpecialtyDetails = () => {
                   {/* Profile Image Section */}
                   <View className="relative items-center flex-col mb-4">
                     <Image
-                      source={require("@/assets/icons/profile.png")}
+                      source={{ uri: doctor.profile_image }}
                       className="w-24 h-24 rounded-full"
                       resizeMode="cover"
                     />

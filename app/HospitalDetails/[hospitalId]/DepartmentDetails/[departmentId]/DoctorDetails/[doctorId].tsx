@@ -818,7 +818,7 @@ const DoctorDetails = () => {
                 />
               ) : (
                 <Image
-                  source={require("@/assets/icons/profile.png")}
+                  source={{ uri: doctor.profile_image }}
                   className="w-24 h-24 rounded-full"
                   resizeMode="cover"
                 />
