@@ -8,7 +8,9 @@ export default function HomeDateAndAppointment() {
       <View className="flex-row px-4 space-x-2 pb-4">
         {/* Lịch ngày */}
         <View className="bg-blue-900/90 w-24 h-28 rounded-xl items-center justify-center pt-3 mr-4">
-          <Text className="text-white text-sm mb-1 font-psemibold">Thursday</Text>
+          <Text className="text-white text-sm mb-1 font-psemibold">
+            Thursday
+          </Text>
           <Text className="text-white font-bold text-3xl font-psemibold">
             23
           </Text>
@@ -22,7 +24,12 @@ export default function HomeDateAndAppointment() {
               Cuộc hẹn sắp tới
             </Text>
             {/* Nút xem chi tiết (tuỳ chọn) */}
-            <TouchableOpacity className="rounded-full self-start" onPress={() => {router.push("/AppointmentDetails/1")}}>
+            <TouchableOpacity
+              className="rounded-full self-start"
+              onPress={() => {
+                router.push("/AppointmentDetails/1");
+              }}
+            >
               <Text className="text-sm text-blue-700 font-pmedium">
                 Xem chi tiết
               </Text>
@@ -116,8 +123,8 @@ export default function HomeDateAndAppointment() {
               </Text>
             </TouchableOpacity>
             <View className="flex-col items-center w-full ml-16 mt-6">
-              <Text className="text-white font-pbold text-xl">
-                Ask any thing with
+              <Text className="text-white font-bold text-xl">
+                Trợ lý đắc lực của bạn
               </Text>
               <Text className="text-white font-pbold text-2xl">
                 Medicare AI!
