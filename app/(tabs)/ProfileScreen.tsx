@@ -39,20 +39,33 @@ enum APPOINTMENT_STATUS {
   IN_PROGRESS = "InProgress",
 }
 
-const convertShiftToTime = (shift: number) => {
-  if (shift >= 0 && shift <= 9) {
-    if (shift % 2 === 0) {
-      return `0${shift + 7}:00 - 0${shift + 7}:30`;
-    }
-    return `0${shift + 7}:30 - 0${shift + 8}:00`;
-  } else {
-    if (shift % 2 === 0) {
-      return `${shift + 3}:00 - ${shift + 3}:30`;
-    }
-    return `${shift + 3}:30 - ${shift + 4}:00`;
-  }
+// const convertShiftToTime = (shift: number) => {
+//   if (shift >= 0 && shift <= 9) {
+//     if (shift % 2 === 0) {
+//       return `0${shift + 7}:00 - 0${shift + 7}:30`;
+//     }
+//     return `0${shift + 7}:30 - 0${shift + 8}:00`;
+//   } else {
+//     if (shift % 2 === 0) {
+//       return `${shift + 3}:00 - ${shift + 3}:30`;
+//     }
+//     return `${shift + 3}:30 - ${shift + 4}:00`;
+//   }
+// };
+const convertShiftToTime = (shift: number): string => {
+  const baseHour = 7;
+  const hour = Math.floor(shift / 2) + baseHour;
+  const minutes = shift % 2 === 0 ? "00" : "30";
+  
+  // Calculate end time (current time + 30 min)
+  const endMinutes = minutes === "00" ? "30" : "00";
+  const endHour = minutes === "00" ? hour : hour + 1;
+  
+  const startTime = hour <= 9 ? `0${hour}:${minutes}` : `${hour}:${minutes}`;
+  const endTime = endHour <= 9 ? `0${endHour}:${endMinutes}` : `${endHour}:${endMinutes}`;
+  
+  return `${startTime} - ${endTime}`;
 };
-
 const convertDate = (date: string) => {
   const year = date.slice(0, 4);
   const month = date.slice(5, 7);
