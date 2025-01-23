@@ -8,28 +8,21 @@ export default function HomeDateAndAppointment() {
       <View className="flex-row px-4 space-x-2 pb-4">
         {/* Lịch ngày */}
         <View className="bg-blue-900/90 w-24 h-28 rounded-xl items-center justify-center pt-3 mr-4">
-          <Text className="text-white text-sm mb-1 font-psemibold">
-            Thursday
-          </Text>
+          <Text className="text-white text-sm mb-1 font-psemibold">Thứ Năm</Text>
           <Text className="text-white font-bold text-3xl font-psemibold">
             23
           </Text>
-          <Text className="text-white text-sm mt-1 font-psemibold">Jan</Text>
+          <Text className="text-white text-sm mt-1 font-psemibold">Tháng Một</Text>
         </View>
 
         <View className="flex-1 bg-[#E8F3FF] rounded-xl p-4">
           {/* Tiêu đề */}
           <View className="flex-row justify-between items-center">
             <Text className="text-base font-semibold text-gray-800">
-              Cuộc hẹn sắp tới
+              Cuộc hẹn hôm nay
             </Text>
             {/* Nút xem chi tiết (tuỳ chọn) */}
-            <TouchableOpacity
-              className="rounded-full self-start"
-              onPress={() => {
-                router.push("/AppointmentDetails/1");
-              }}
-            >
+            <TouchableOpacity className="rounded-full self-start">
               <Text className="text-sm text-blue-700 font-pmedium">
                 Xem chi tiết
               </Text>
@@ -40,17 +33,17 @@ export default function HomeDateAndAppointment() {
           <View className="flex-row items-center mt-1">
             {/* Ảnh avatar bác sĩ (chẳng hạn) */}
             <Image
-              source={{ uri: "https://picsum.photos/50" }}
+              source={{ uri: "https://img.freepik.com/free-photo/portrait-3d-male-doctor_23-2151107221.jpg" }}
               className="w-12 h-12 rounded-full mr-3"
               resizeMode="cover"
             />
             {/* Tên bác sĩ + chức danh */}
             <View className="flex-1">
               <Text className="text-sm font-medium text-gray-800">
-                Bs. Nguyễn Thị Lan
+                Dr. Phạm Hoàng Nam
               </Text>
-              <Text className="text-xs text-gray-500">Khoa da liễu</Text>
-              <Text className="text-xs text-gray-500">8:00 - 8:30</Text>
+              <Text className="text-xs text-gray-500">Chuyên khoa Tim Mạch</Text>
+              <Text className="text-xs text-gray-500">07:00 - 07:30</Text>
             </View>
 
             {/* Nút gọi (tuỳ chọn) */}
@@ -123,8 +116,8 @@ export default function HomeDateAndAppointment() {
               </Text>
             </TouchableOpacity>
             <View className="flex-col items-center w-full ml-16 mt-6">
-              <Text className="text-white font-bold text-xl">
-                Trợ lý đắc lực của bạn
+              <Text className="text-white font-pbold text-xl">
+                Ask any thing with
               </Text>
               <Text className="text-white font-pbold text-2xl">
                 Medicare AI!
